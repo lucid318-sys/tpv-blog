@@ -1,0 +1,68 @@
+---
+interface Props {
+  slug: string;
+  title: string;
+  date: string;
+  category: "column" | "case";
+  summary: string;
+}
+const { slug, title, date, category, summary } = Astro.props;
+const label = category === "column" ? "칼럼" : "사례";
+---
+<a href={`/blog/${slug}/`} class="card">
+  <div class="meta">
+    <span class={`badge ${category}`}>{label}</span>
+    <time>{date}</time>
+  </div>
+  <h2 class="title">{title}</h2>
+  <p class="summary">{summary}</p>
+</a>
+
+<style>
+  .card {
+    display: block;
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 4px 20px rgba(44,33,23,0.1);
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+  }
+  .badge.column {
+    background: var(--dark-brown);
+    color: var(--cream);
+  }
+  .badge.case {
+    background: var(--terracotta);
+    color: #fff;
+  }
+  time {
+    font-size: 0.8rem;
+    color: #999;
+  }
+  .title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+  .summary {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.6;
+  }
+</style>

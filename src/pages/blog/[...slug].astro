@@ -1,0 +1,120 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Header from "../../components/Header.astro";
+import CTA from "../../components/CTA.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const label = post.data.category === "column" ? "칼럼" : "사례";
+---
+<Base title={post.data.title}>
+  <Header />
+  <main class="main">
+    <article>
+      <div class="meta">
+        <span class={`badge ${post.data.category}`}>{label}</span>
+        <time>{post.data.date}</time>
+      </div>
+      <h1 class="title">{post.data.title}</h1>
+      <div class="body">
+        <Content />
+      </div>
+    </article>
+    <CTA />
+    <div class="back-wrap">
+      <a href="/" class="back">&larr; 목록으로</a>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+  }
+  .badge.column {
+    background: var(--dark-brown);
+    color: var(--cream);
+  }
+  .badge.case {
+    background: var(--terracotta);
+    color: #fff;
+  }
+  time {
+    font-size: 0.8rem;
+    color: #999;
+  }
+  .title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+  }
+  .body {
+    font-size: 1rem;
+    line-height: 1.9;
+  }
+  .body :global(h2) {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.3rem;
+    margin: 2rem 0 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--terracotta);
+  }
+  .body :global(h3) {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 1.5rem 0 0.5rem;
+  }
+  .body :global(p) {
+    margin-bottom: 1rem;
+  }
+  .body :global(ul), .body :global(ol) {
+    margin: 0.5rem 0 1rem 1.25rem;
+  }
+  .body :global(li) {
+    margin-bottom: 0.3rem;
+  }
+  .body :global(strong) {
+    color: var(--terracotta);
+  }
+  .body :global(blockquote) {
+    border-left: 3px solid var(--terracotta);
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    background: rgba(212,98,43,0.06);
+    border-radius: 0 8px 8px 0;
+  }
+  .back-wrap {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .back {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--terracotta);
+  }
+</style>
