@@ -51,6 +51,16 @@ const taxInfo = TAX_INFO[catSlug];
     </div>
 
     <aside class="sidebar">
+      <form class="sidebar-search" action="/search/" method="get">
+        <p class="sidebar-title">키워드로 찾기</p>
+        <div class="search-input-wrap">
+          <input type="text" name="q" placeholder="검색어 입력" class="search-input" />
+          <button type="submit" class="search-btn" aria-label="검색">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+        </div>
+      </form>
+
       <div class="sidebar-taxinfo">
         <p class="sidebar-title">{label} 한눈에</p>
         {taxInfo ? (
@@ -135,6 +145,44 @@ const taxInfo = TAX_INFO[catSlug];
     position: sticky;
     top: 80px;
     align-self: flex-start;
+  }
+
+  /* ── Sidebar Search ── */
+  .sidebar-search {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #eae4d8;
+    padding: 1.25rem;
+  }
+  .search-input-wrap {
+    display: flex;
+    gap: 0;
+  }
+  .search-input {
+    flex: 1;
+    min-width: 0;
+    border: 1.5px solid #ddd6c9;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.8rem;
+    font-family: 'Pretendard', sans-serif;
+    background: #faf7f2;
+    color: var(--dark-brown);
+    outline: none;
+  }
+  .search-input:focus {
+    border-color: var(--terracotta);
+  }
+  .search-btn {
+    background: var(--dark-brown);
+    border: none;
+    border-radius: 0 8px 8px 0;
+    padding: 0 0.6rem;
+    color: var(--cream);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
   }
 
   /* ── Tax Info Card ── */

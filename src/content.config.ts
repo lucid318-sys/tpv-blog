@@ -8,6 +8,7 @@ const blog = defineCollection({
     date: z.string(),
     category: z.enum(["chwideuk", "yangdo", "jeungyeo", "sangsok", "etc"]),
     type: z.enum(["column", "case"]).optional(),
+    tags: z.array(z.string()).optional(),
     summary: z.string(),
   }),
 });
