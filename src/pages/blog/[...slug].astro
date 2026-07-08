@@ -3,47 +3,110 @@ import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import CTA from "../../components/CTA.astro";
 
+const categoryLabels: Record<string, string> = {
+  chwideuk: "취득세",
+  yangdo: "양도세",
+  jeungyeo: "증여세",
+  sangsok: "상속세",
+  etc: "기타",
+};
+
 export async function getStaticPaths() {
-  const posts = await getCollection("blog");
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+  const allPosts = await getCollection("blog");
+  const sorted = allPosts.sort(
+    (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+  );
+
+  return sorted.map((post) => {
+    const sameCat = sorted.filter(
+      (p) => p.id !== post.id && p.data.category === post.data.category
+    );
+    const related =
+      sameCat.length > 0
+        ? sameCat.slice(0, 4)
+        : sorted.filter((p) => p.id !== post.id).slice(0, 4);
+
+    return {
+      params: { slug: post.id },
+      props: { post, relatedPosts: related },
+    };
+  });
 }
 
-const { post } = Astro.props;
+const { post, relatedPosts } = Astro.props;
 const { Content } = await render(post);
-const label = post.data.category === "column" ? "칼럼" : "사례";
+const catLabel = categoryLabels[post.data.category] ?? post.data.category;
+const typeLabel = post.data.type === "case" ? "사례" : post.data.type === "column" ? "칼럼" : null;
 ---
 <Base title={post.data.title}>
-  <main class="main">
-    <article>
+  <main class="layout">
+    <article class="card">
       <div class="meta">
-        <span class={`badge ${post.data.category}`}>{label}</span>
+        <span class={`badge cat-${post.data.category}`}>{catLabel}</span>
+        {typeLabel && <span class="badge-type">{typeLabel}</span>}
         <time>{post.data.date}</time>
       </div>
       <h1 class="title">{post.data.title}</h1>
+      <hr class="divider" />
       <div class="body">
         <Content />
       </div>
     </article>
+
+    <aside class="sidebar">
+      {relatedPosts.length > 0 && (
+        <div class="sidebar-related">
+          <p class="sidebar-title">{catLabel} 글 더보기</p>
+          <ul>
+            {relatedPosts.map((rp: any) => (
+              <li><a href={`/blog/${rp.id}/`}>{rp.data.title}</a></li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div class="sidebar-cta">
+        <p class="cta-label">상담이 필요하세요?</p>
+        <a href="https://pf.kakao.com/_dcihX/chat" target="_blank" rel="noopener" class="cta-btn">
+          카카오톡 상담
+        </a>
+      </div>
+    </aside>
+  </main>
+
+  <div class="bottom-area">
     <CTA />
     <div class="back-wrap">
       <a href="/" class="back">&larr; 목록으로</a>
     </div>
-  </main>
+  </div>
 </Base>
 
 <style>
-  .main {
-    max-width: 720px;
+  /* ── Layout ── */
+  .layout {
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
+    padding: 2rem 1.5rem 0;
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
   }
+
+  /* ── Article Card ── */
+  .card {
+    flex: 1;
+    min-width: 0;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #eae4d8;
+    padding: 2.5rem;
+  }
+
+  /* ── Meta ── */
   .meta {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
     margin-bottom: 1rem;
   }
   .badge {
@@ -52,38 +115,74 @@ const label = post.data.category === "column" ? "칼럼" : "사례";
     padding: 0.2rem 0.6rem;
     border-radius: 4px;
   }
-  .badge.column {
-    background: var(--dark-brown);
-    color: var(--cream);
-  }
-  .badge.case {
-    background: var(--terracotta);
-    color: #fff;
+  .cat-chwideuk { background: #4A6FA5; color: #fff; }
+  .cat-yangdo { background: var(--dark-brown); color: var(--cream); }
+  .cat-jeungyeo { background: var(--terracotta); color: #fff; }
+  .cat-sangsok { background: #5B7A5E; color: #fff; }
+  .cat-etc { background: #888; color: #fff; }
+  .badge-type {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    border: 1.2px solid var(--dark-brown);
+    color: var(--dark-brown);
   }
   time {
     font-size: 0.8rem;
     color: #999;
   }
+
+  /* ── Title & Divider ── */
   .title {
     font-family: 'Noto Serif KR', serif;
-    font-size: 1.8rem;
+    font-size: 1.7rem;
     font-weight: 700;
-    line-height: 1.5;
+    color: var(--dark-brown);
+    line-height: 1.45;
+    margin-bottom: 1rem;
+  }
+  .divider {
+    border: none;
+    height: 1px;
+    background: #eae4d8;
     margin-bottom: 2rem;
   }
+
+  /* ── Body Typography ── */
   .body {
-    font-size: 1rem;
-    line-height: 1.9;
+    font-size: 0.95rem;
+    line-height: 1.85;
+    color: #3a3229;
+    counter-reset: h2counter;
   }
   .body :global(h2) {
     font-family: 'Noto Serif KR', serif;
-    font-size: 1.3rem;
-    margin: 2rem 0 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--terracotta);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 2.5rem 0 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    counter-increment: h2counter;
+  }
+  .body :global(h2)::before {
+    content: counter(h2counter);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    background: var(--dark-brown);
+    color: var(--cream);
+    font-family: 'Pretendard', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 7px;
+    flex-shrink: 0;
   }
   .body :global(h3) {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     margin: 1.5rem 0 0.5rem;
   }
@@ -97,14 +196,126 @@ const label = post.data.category === "column" ? "칼럼" : "사례";
     margin-bottom: 0.3rem;
   }
   .body :global(strong) {
+    color: var(--dark-brown);
+    font-weight: 700;
+  }
+
+  /* ── Table ── */
+  .body :global(.table-wrap) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 1.25rem 0;
+    border-radius: 8px;
+    border: 1px solid #e8e2d6;
+  }
+  .body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .body :global(th) {
+    background: var(--dark-brown);
+    color: var(--cream);
+    font-weight: 700;
+    padding: 0.65rem 1rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .body :global(td) {
+    padding: 0.6rem 1rem;
+    border-top: 1px solid #e8e2d6;
+  }
+  .body :global(tr:nth-child(even) td) {
+    background: #faf7f1;
+  }
+
+  /* ── Blockquote ── */
+  .body :global(blockquote) {
+    background: #faf7f1;
+    border-left: 3px solid var(--terracotta);
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+  }
+  .sidebar-related {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #eae4d8;
+    padding: 1.25rem;
+  }
+  .sidebar-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--terracotta);
+    margin-bottom: 0.75rem;
+  }
+  .sidebar-related ul {
+    list-style: none;
+  }
+  .sidebar-related li {
+    border-top: 1px solid #f0ebe3;
+    padding: 0.6rem 0;
+  }
+  .sidebar-related li:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+  .sidebar-related li:last-child {
+    padding-bottom: 0;
+  }
+  .sidebar-related a {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    display: block;
+    transition: color 0.15s;
+  }
+  .sidebar-related a:hover {
     color: var(--terracotta);
   }
-  .body :global(blockquote) {
-    border-left: 3px solid var(--terracotta);
-    padding: 0.75rem 1rem;
-    margin: 1rem 0;
-    background: rgba(212,98,43,0.06);
-    border-radius: 0 8px 8px 0;
+  .sidebar-cta {
+    background: var(--dark-brown);
+    border-radius: 12px;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+  }
+  .cta-label {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cream);
+    margin-bottom: 0.75rem;
+  }
+  .cta-btn {
+    display: inline-block;
+    background: var(--terracotta);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.55rem 1.25rem;
+    border-radius: 8px;
+    transition: opacity 0.2s;
+  }
+  .cta-btn:hover { opacity: 0.85; }
+
+  /* ── Bottom CTA + Back ── */
+  .bottom-area {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
   }
   .back-wrap {
     margin-top: 2rem;
@@ -115,4 +326,51 @@ const label = post.data.category === "column" ? "칼럼" : "사례";
     font-weight: 600;
     color: var(--terracotta);
   }
+
+  /* ── Mobile ── */
+  @media (max-width: 1024px) {
+    .layout {
+      flex-direction: column;
+    }
+    .sidebar {
+      width: 100%;
+      position: static;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .sidebar-related,
+    .sidebar-cta {
+      flex: 1;
+      min-width: 240px;
+    }
+    .card {
+      padding: 1.75rem;
+    }
+    .title {
+      font-size: 1.45rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sidebar {
+      flex-direction: column;
+    }
+    .sidebar-related,
+    .sidebar-cta {
+      min-width: auto;
+    }
+    .card {
+      padding: 1.25rem;
+    }
+  }
 </style>
+
+<script>
+  // Wrap tables in scrollable container
+  document.querySelectorAll('.body table').forEach((table) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    table.parentNode!.insertBefore(wrap, table);
+    wrap.appendChild(table);
+  });
+</script>
