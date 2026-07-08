@@ -94,11 +94,6 @@
   .arrow {
     font-size: 0.7rem;
     margin-left: 0.3rem;
-    display: inline-block;
-    transition: transform 0.2s;
-  }
-  .has-dropdown.open .arrow {
-    transform: rotate(180deg);
   }
 
   /* Dropdown */
@@ -199,11 +194,14 @@
       position: static;
       box-shadow: none;
       border-radius: 0;
-      padding: 0;
-      background: rgba(255,255,255,0.05);
+      padding: 0.25rem 0 0.25rem 2rem;
+      background: transparent;
+      border-left: 2px solid var(--terracotta);
+      margin-left: 1.5rem;
     }
     .dropdown li a {
-      padding: 0.75rem 2.5rem;
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
     }
   }
 </style>
@@ -217,15 +215,23 @@
     hamburger.setAttribute('aria-expanded', String(isOpen));
   });
 
+  function updateArrow(el: Element, open: boolean) {
+    const arrow = el.querySelector('.arrow');
+    if (arrow) arrow.textContent = open ? '▴' : '▾';
+  }
+
   document.querySelectorAll('.dropdown-trigger').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (window.innerWidth <= 768) {
         const parent = btn.closest('.has-dropdown')!;
-        // close other open dropdowns
         document.querySelectorAll('.has-dropdown.open').forEach((el) => {
-          if (el !== parent) el.classList.remove('open');
+          if (el !== parent) {
+            el.classList.remove('open');
+            updateArrow(el, false);
+          }
         });
-        parent.classList.toggle('open');
+        const isOpen = parent.classList.toggle('open');
+        updateArrow(parent, isOpen);
       }
     });
   });
