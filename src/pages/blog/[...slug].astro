@@ -1,7 +1,6 @@
 ---
 import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
-import Header from "../../components/Header.astro";
 import CTA from "../../components/CTA.astro";
 
 export async function getStaticPaths() {
@@ -17,7 +16,6 @@ const { Content } = await render(post);
 const label = post.data.category === "column" ? "칼럼" : "사례";
 ---
 <Base title={post.data.title}>
-  <Header />
   <main class="main">
     <article>
       <div class="meta">

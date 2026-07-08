@@ -3,12 +3,13 @@ interface Props {
   slug: string;
   title: string;
   date: string;
-  category: "yangdo" | "sangsok" | "jeungyeo" | "etc";
+  category: "chwideuk" | "yangdo" | "jeungyeo" | "sangsok" | "etc";
   type?: "column" | "case";
   summary: string;
 }
 const { slug, title, date, category, type, summary } = Astro.props;
 const categoryLabels: Record<string, string> = {
+  chwideuk: "취득세",
   yangdo: "양도세",
   sangsok: "상속세",
   jeungyeo: "증여세",
@@ -48,6 +49,10 @@ const catLabel = categoryLabels[category] ?? category;
     font-weight: 700;
     padding: 0.2rem 0.6rem;
     border-radius: 4px;
+  }
+  .badge.chwideuk {
+    background: #4A6FA5;
+    color: #fff;
   }
   .badge.yangdo {
     background: var(--dark-brown);

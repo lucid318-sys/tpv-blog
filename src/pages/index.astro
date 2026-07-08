@@ -1,7 +1,6 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
-import Header from "../components/Header.astro";
 import PostCard from "../components/PostCard.astro";
 
 const posts = (await getCollection("blog")).sort(
@@ -9,13 +8,13 @@ const posts = (await getCollection("blog")).sort(
 );
 ---
 <Base title="블로그">
-  <Header />
   <main class="main">
     <div class="filter" id="filter">
       <button class="tab active" data-cat="all">전체</button>
+      <button class="tab" data-cat="chwideuk">취득세</button>
       <button class="tab" data-cat="yangdo">양도세</button>
-      <button class="tab" data-cat="sangsok">상속세</button>
       <button class="tab" data-cat="jeungyeo">증여세</button>
+      <button class="tab" data-cat="sangsok">상속세</button>
       <button class="tab" data-cat="etc">기타</button>
     </div>
     <div class="list" id="list">

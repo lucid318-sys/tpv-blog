@@ -1,0 +1,72 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PostCard from "../../components/PostCard.astro";
+
+export async function getStaticPaths() {
+  const categories: Record<string, string> = {
+    chwideuk: "취득세",
+    yangdo: "양도소득세",
+    jeungyeo: "증여세",
+    sangsok: "상속세",
+    etc: "기타",
+  };
+  const posts = await getCollection("blog");
+  return Object.keys(categories).map((cat) => ({
+    params: { category: cat },
+    props: {
+      label: categories[cat],
+      posts: posts
+        .filter((p) => p.data.category === cat)
+        .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()),
+    },
+  }));
+}
+
+const { label, posts } = Astro.props;
+---
+<Base title={`${label} — 세금 이야기`}>
+  <main class="main">
+    <h1 class="page-title">{label}</h1>
+    <div class="list">
+      {posts.length === 0 ? (
+        <p class="empty">아직 작성된 글이 없습니다.</p>
+      ) : (
+        posts.map((post: any) => (
+          <PostCard
+            slug={post.id}
+            title={post.data.title}
+            date={post.data.date}
+            category={post.data.category}
+            type={post.data.type}
+            summary={post.data.summary}
+          />
+        ))
+      )}
+    </div>
+  </main>
+</Base>
+
+<style>
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  .page-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .empty {
+    text-align: center;
+    color: #999;
+    padding: 3rem 0;
+  }
+</style>
