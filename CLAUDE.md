@@ -1,22 +1,70 @@
-## Development
+# 더프라이빗택스 블로그 (tpv-blog)
 
-When starting the dev server, use background mode:
+## 프로젝트 개요
+- Astro 7 정적 블로그, Vercel 배포
+- 세무사 허혜주(@tpv_tax)의 부동산 세금 전문 블로그
+- `npm run build` = 검색 인덱스 생성 → Astro 빌드
 
-```
-astro dev --background
-```
+## 글 작성 규칙
 
-Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
+### 역할
+사용자(세무사)가 글 원문을 주면, 아래 규칙에 따라 블로그 글로 변환해서 `src/content/blog/`에 저장한다. **세무 내용(숫자, 법령, 판단)은 절대 임의로 수정하지 않는다.**
 
-## Documentation
+### 파일 형식
+- 파일명: `YYYY-MM-DD-주제요약.md` (한글 가능)
+- frontmatter 필수: `title`, `date`, `category`, `summary`
+- frontmatter 선택: `type`, `tags`
 
-Full documentation: https://docs.astro.build
+### date 규칙
+- 오늘 날짜(작업일)로 넣는다. 미래 날짜 금지.
 
-Consult these guides before working on related tasks:
+### category 판단 (본문을 읽고 자동 판단)
+- `chwideuk`(취득세) / `yangdo`(양도소득세) / `jeungyeo`(증여세) / `sangsok`(상속세) / `etc`(기타)
+- 여러 세목에 걸치면 가장 중심인 세목 하나로. 애매하면 사용자에게 질문.
 
-- [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)
-- [Working with Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Using React, Vue, Svelte, or other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
-- [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+### type 판단
+- 실제 의뢰인 사례, 상담 케이스 중심 → `"case"`
+- 제도 설명, 법령 정리, 가이드 → `"column"` (기본값)
+- 애매하면 사용자에게 질문.
+
+### tags 규칙
+- 본문 핵심 키워드 3~5개
+- 새 태그 만들기 전에 기존 글들의 태그를 먼저 확인하고, 비슷한 태그가 있으면 재사용 (예: `자녀증여`가 있으면 `아이증여` 새로 만들지 않기)
+- 세목을 넘나드는 주제(예: 다가구주택)는 태그로 반드시 잡기
+
+### 본문 형식 규칙
+- h2(`##`) 소제목에 번호를 붙이지 않기 — 사이트에서 CSS counter로 자동 번호가 붙음
+- 표는 마크다운 표 문법으로 작성
+- 세율·이자율 등 개정될 수 있는 숫자에는 `(2026년 기준)` 처럼 기준 시점 명시
+- 원문의 이모지는 제거하되 내용은 그대로 유지
+
+### 원문 정리 규칙
+- 노션 등에서 복사된 원문에 이미지 자리(`!image.png`), 다운로드 링크, 깨진 표기가 있으면: 이미지·첨부는 "준비 중입니다" 안내로 대체하고, 어떤 것을 대체했는지 사용자에게 보고한다.
+
+### 법령 인용 표기
+- 법령은 정식 명칭으로 통일 표기: `상속세 및 증여세법 제65조 제1항`
+- (추후 법령 자동 링크 기능을 위한 준비)
+
+### summary 규칙
+- 목록 카드에 보일 한 줄 요약, 60자 내외, 원문 톤 유지
+
+## 작업 범위 제한
+- 글 작업 시 `src/content/blog/` 안의 파일만 생성·수정한다.
+- 디자인, 레이아웃, 설정 파일은 사용자가 명시적으로 요청할 때만 수정한다.
+
+## 발행 절차 (중요)
+1. 원문을 변환하면 먼저 결과(frontmatter + 본문 앞부분)를 사용자에게 보여주고, category/type/tags 판단 근거를 요약해서 확인을 받는다.
+2. 사용자가 승인하면 그때 빌드 → 커밋 → push 한다.
+3. 빌드 후 `public/search-index.json`에 새 글이 포함됐는지 확인한다.
+4. 커밋 메시지: `post: 글제목 요약`
+
+## 데이터 일치 확인
+- 세율표 등 사이트 공통 데이터(`src/data/taxinfo.ts`)와 겹치는 숫자가 글에 나오면, 데이터 파일과 일치하는지 확인하고 다르면 사용자에게 알린다.
+
+## 주요 파일 경로
+- 글: `src/content/blog/`
+- 스키마: `src/content.config.ts`
+- 세목 데이터: `src/data/taxinfo.ts`
+- 검색 인덱스 빌드: `src/scripts/build-search-index.mjs`
+- 템플릿/레이아웃: `src/layouts/Base.astro`
+- 컴포넌트: `src/components/` (Navbar, Footer, PostCard, CTA)
