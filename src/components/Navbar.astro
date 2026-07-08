@@ -13,7 +13,7 @@
 
     <ul class="nav-menu" id="nav-menu">
       <li class="has-dropdown">
-        <button class="nav-link dropdown-trigger">세금 이야기</button>
+        <button class="nav-link dropdown-trigger">세금 이야기<span class="arrow">▾</span></button>
         <ul class="dropdown">
           <li><a href="/category/chwideuk/">취득세</a></li>
           <li><a href="/category/yangdo/">양도소득세</a></li>
@@ -23,14 +23,14 @@
         </ul>
       </li>
       <li class="has-dropdown">
-        <button class="nav-link dropdown-trigger">서식·자료</button>
+        <button class="nav-link dropdown-trigger">서식·자료<span class="arrow">▾</span></button>
         <ul class="dropdown">
           <li><a href="/resources/">서식</a></li>
           <li><a href="/resources/">정책·대책</a></li>
         </ul>
       </li>
-      <li><a href="/consult/" class="nav-link">상담</a></li>
-      <li><a href="/about/" class="nav-link">소개</a></li>
+      <li><a href="/consult/" class="nav-link">상담 안내</a></li>
+      <li><a href="/about/" class="nav-link">세무사 소개</a></li>
     </ul>
   </div>
 </nav>
@@ -88,6 +88,17 @@
   }
   .nav-link:hover {
     background: rgba(255,255,255,0.1);
+  }
+
+  /* Arrow indicator */
+  .arrow {
+    font-size: 0.7rem;
+    margin-left: 0.3rem;
+    display: inline-block;
+    transition: transform 0.2s;
+  }
+  .has-dropdown.open .arrow {
+    transform: rotate(180deg);
   }
 
   /* Dropdown */
@@ -152,17 +163,26 @@
       right: 0;
       background: var(--dark-brown);
       flex-direction: column;
-      padding: 0.5rem 0 1rem;
+      padding: 0.5rem 0;
       gap: 0;
       box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     }
     .nav-menu.open {
       display: flex;
     }
+    .nav-menu > li {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav-menu > li:last-child {
+      border-bottom: none;
+    }
     .nav-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       width: 100%;
       text-align: left;
-      padding: 0.75rem 1.5rem;
+      padding: 0.85rem 1.5rem;
       border-radius: 0;
     }
     .has-dropdown {
@@ -183,7 +203,7 @@
       background: rgba(255,255,255,0.05);
     }
     .dropdown li a {
-      padding: 0.6rem 2.5rem;
+      padding: 0.75rem 2.5rem;
     }
   }
 </style>
@@ -200,7 +220,12 @@
   document.querySelectorAll('.dropdown-trigger').forEach((btn) => {
     btn.addEventListener('click', () => {
       if (window.innerWidth <= 768) {
-        btn.closest('.has-dropdown')!.classList.toggle('open');
+        const parent = btn.closest('.has-dropdown')!;
+        // close other open dropdowns
+        document.querySelectorAll('.has-dropdown.open').forEach((el) => {
+          if (el !== parent) el.classList.remove('open');
+        });
+        parent.classList.toggle('open');
       }
     });
   });
