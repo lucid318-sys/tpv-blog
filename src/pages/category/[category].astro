@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PostCard from "../../components/PostCard.astro";
+import { TAX_INFO } from "../../data/taxinfo";
 
 export async function getStaticPaths() {
   const categories: Record<string, string> = {
@@ -15,6 +16,7 @@ export async function getStaticPaths() {
   return Object.keys(categories).map((cat) => ({
     params: { category: cat },
     props: {
+      catSlug: cat,
       label: categories[cat],
       posts: posts
         .filter((p) => p.data.category === cat)
@@ -23,35 +25,88 @@ export async function getStaticPaths() {
   }));
 }
 
-const { label, posts } = Astro.props;
+const { catSlug, label, posts } = Astro.props;
+const taxInfo = TAX_INFO[catSlug];
 ---
 <Base title={`${label} — 세금 이야기`}>
-  <main class="main">
-    <h1 class="page-title">{label}</h1>
-    <div class="list">
-      {posts.length === 0 ? (
-        <p class="empty">아직 작성된 글이 없습니다.</p>
-      ) : (
-        posts.map((post: any) => (
-          <PostCard
-            slug={post.id}
-            title={post.data.title}
-            date={post.data.date}
-            category={post.data.category}
-            type={post.data.type}
-            summary={post.data.summary}
-          />
-        ))
-      )}
+  <main class="layout">
+    <div class="content">
+      <h1 class="page-title">{label}</h1>
+      <div class="list">
+        {posts.length === 0 ? (
+          <p class="empty">아직 작성된 글이 없습니다.</p>
+        ) : (
+          posts.map((post: any) => (
+            <PostCard
+              slug={post.id}
+              title={post.data.title}
+              date={post.data.date}
+              category={post.data.category}
+              type={post.data.type}
+              summary={post.data.summary}
+            />
+          ))
+        )}
+      </div>
     </div>
+
+    <aside class="sidebar">
+      <div class="sidebar-taxinfo">
+        <p class="sidebar-title">{label} 한눈에</p>
+        {taxInfo ? (
+          <>
+            <table class="si-table">
+              <thead><tr><th>과세표준</th><th>세율</th><th>누진공제</th></tr></thead>
+              <tbody>
+                {taxInfo.rates.map((r) => (
+                  <tr><td>{r.bracket}</td><td>{r.rate}</td><td>{r.deduction}</td></tr>
+                ))}
+              </tbody>
+            </table>
+
+            <p class="si-sub">증여재산공제 (10년간)</p>
+            <table class="si-table">
+              <thead><tr><th>증여자</th><th>공제한도</th></tr></thead>
+              <tbody>
+                {taxInfo.exemptions.map((e) => (
+                  <tr><td>{e.relation}</td><td>{e.limit}</td></tr>
+                ))}
+              </tbody>
+            </table>
+            {taxInfo.exemptionNote && <p class="si-note">{taxInfo.exemptionNote}</p>}
+
+            <div class="si-footer">
+              <p>신고기한: {taxInfo.filingDeadline}</p>
+              <p>신고·납부: {taxInfo.filingPerson}</p>
+            </div>
+          </>
+        ) : (
+          <p class="si-placeholder">정리 중입니다</p>
+        )}
+      </div>
+
+      <div class="sidebar-cta">
+        <p class="cta-label">상담이 필요하세요?</p>
+        <a href="https://pf.kakao.com/_dcihX/chat" target="_blank" rel="noopener" class="cta-btn">
+          카카오톡 상담
+        </a>
+      </div>
+    </aside>
   </main>
 </Base>
 
 <style>
-  .main {
-    max-width: 720px;
+  .layout {
+    max-width: 1080px;
     margin: 0 auto;
     padding: 2rem 1.5rem 4rem;
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  .content {
+    flex: 1;
+    min-width: 0;
   }
   .page-title {
     font-family: 'Noto Serif KR', serif;
@@ -68,5 +123,129 @@ const { label, posts } = Astro.props;
     text-align: center;
     color: #999;
     padding: 3rem 0;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+  }
+
+  /* ── Tax Info Card ── */
+  .sidebar-taxinfo {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #eae4d8;
+    padding: 1.25rem;
+  }
+  .sidebar-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--terracotta);
+    margin-bottom: 0.75rem;
+  }
+  .si-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .si-table th {
+    background: #f0eae0;
+    color: var(--dark-brown);
+    font-weight: 700;
+    padding: 0.35rem 0.5rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .si-table td {
+    padding: 0.3rem 0.5rem;
+    border-top: 1px solid #eae4d8;
+    white-space: nowrap;
+  }
+  .si-sub {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--dark-brown);
+    margin-bottom: 0.35rem;
+  }
+  .si-note {
+    font-size: 0.7rem;
+    color: #999;
+    margin-bottom: 0.75rem;
+  }
+  .si-footer {
+    border-top: 1px solid #eae4d8;
+    padding-top: 0.6rem;
+  }
+  .si-footer p {
+    font-size: 0.7rem;
+    color: #777;
+    line-height: 1.6;
+  }
+  .si-placeholder {
+    font-size: 0.8rem;
+    color: #999;
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  /* ── CTA Card ── */
+  .sidebar-cta {
+    background: var(--dark-brown);
+    border-radius: 12px;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+  }
+  .cta-label {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cream);
+    margin-bottom: 0.75rem;
+  }
+  .cta-btn {
+    display: inline-block;
+    background: var(--terracotta);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.55rem 1.25rem;
+    border-radius: 8px;
+    transition: opacity 0.2s;
+  }
+  .cta-btn:hover { opacity: 0.85; }
+
+  /* ── Mobile ── */
+  @media (max-width: 1024px) {
+    .layout {
+      flex-direction: column;
+    }
+    .sidebar {
+      width: 100%;
+      position: static;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .sidebar-taxinfo,
+    .sidebar-cta {
+      flex: 1;
+      min-width: 240px;
+    }
+  }
+  @media (max-width: 640px) {
+    .sidebar {
+      flex-direction: column;
+    }
+    .sidebar-taxinfo,
+    .sidebar-cta {
+      min-width: auto;
+    }
   }
 </style>
