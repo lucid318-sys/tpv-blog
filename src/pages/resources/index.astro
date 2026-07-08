@@ -1,0 +1,96 @@
+---
+import Base from "../../layouts/Base.astro";
+import { REFERENCE_DATE } from "../../data/regulatedAreas";
+---
+<Base title="서식·자료">
+  <main class="main">
+    <h1 class="page-title">서식 · 자료</h1>
+
+    <section id="policy" class="section">
+      <h2 class="section-title">정책 · 대책</h2>
+      <a href="/resources/regulated-areas/" class="card">
+        <div>
+          <h3 class="card-title">규제지역 지정현황</h3>
+          <p class="card-desc">조정대상지역·투기과열지구 현황 및 지정 연혁</p>
+        </div>
+        <span class="card-badge">{REFERENCE_DATE} 기준</span>
+      </a>
+    </section>
+
+    <section id="forms" class="section">
+      <h2 class="section-title">서식</h2>
+      <p class="placeholder">준비 중입니다.</p>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  .page-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+  }
+  .section {
+    margin-bottom: 2.5rem;
+  }
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e8e2d6;
+  }
+  .card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 4px 20px rgba(44,33,23,0.1);
+  }
+  .card-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+  .card-desc {
+    font-size: 0.85rem;
+    color: #777;
+  }
+  .card-badge {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: var(--terracotta);
+    color: #fff;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .placeholder {
+    color: #999;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 640px) {
+    .card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

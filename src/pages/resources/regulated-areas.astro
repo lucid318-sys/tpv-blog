@@ -1,0 +1,236 @@
+---
+import Base from "../../layouts/Base.astro";
+import {
+  ADJUSTED_AREAS, SPECULATION_AREAS, AREA_HISTORY,
+  DOWNLOAD_FILES, REFERENCE_DATE,
+} from "../../data/regulatedAreas";
+---
+<Base title="규제지역 지정현황">
+  <main class="main">
+    <div class="header">
+      <h1 class="page-title">규제지역 지정현황</h1>
+      <span class="date-badge">{REFERENCE_DATE} 기준</span>
+    </div>
+
+    <section class="section">
+      <h2 class="section-title">조정대상지역</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>지역</th><th>구·시</th></tr></thead>
+          <tbody>
+            {ADJUSTED_AREAS.map((g) => (
+              <tr>
+                <td class="region">{g.region}</td>
+                <td>{g.areas.join(", ")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">투기과열지구</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>지역</th><th>구·시</th></tr></thead>
+          <tbody>
+            {SPECULATION_AREAS.map((g) => (
+              <tr>
+                <td class="region">{g.region}</td>
+                <td>{g.areas.join(", ")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">지정 연혁</h2>
+      {AREA_HISTORY.map((h) => (
+        <div class="history-card">
+          <span class="history-date">{h.date}</span>
+          <p class="history-desc">{h.description}</p>
+          {h.notes && h.notes.map((n) => (
+            <p class="history-note">{n}</p>
+          ))}
+        </div>
+      ))}
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">원본 자료 다운로드</h2>
+      <div class="downloads">
+        {DOWNLOAD_FILES.map((f) => (
+          <a href={`/files/${f.filename}`} target="_blank" rel="noopener" class="dl-item" download>
+            <div class="dl-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <polyline points="9 15 12 18 15 15"/>
+              </svg>
+            </div>
+            <div class="dl-info">
+              <p class="dl-label">{f.label}</p>
+              <p class="dl-type">PDF</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <div class="back-wrap">
+      <a href="/resources/" class="back">&larr; 서식·자료로 돌아가기</a>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .page-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+  .date-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: var(--terracotta);
+    color: #fff;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+  }
+
+  .section {
+    margin-bottom: 2.5rem;
+  }
+  .section-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--dark-brown);
+  }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    border: 1px solid #e8e2d6;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th {
+    background: var(--dark-brown);
+    color: var(--cream);
+    font-weight: 700;
+    padding: 0.65rem 1rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+  td {
+    padding: 0.7rem 1rem;
+    border-top: 1px solid #e8e2d6;
+    line-height: 1.7;
+  }
+  tr:nth-child(even) td {
+    background: #faf7f1;
+  }
+  .region {
+    white-space: nowrap;
+    font-weight: 700;
+  }
+
+  /* History */
+  .history-card {
+    background: #fff;
+    border: 1px solid #eae4d8;
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .history-date {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--terracotta);
+  }
+  .history-desc {
+    font-size: 0.9rem;
+    margin-top: 0.35rem;
+    font-weight: 600;
+  }
+  .history-note {
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 0.25rem;
+  }
+
+  /* Downloads */
+  .downloads {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .dl-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #fff;
+    border: 1px solid #eae4d8;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    transition: box-shadow 0.15s;
+  }
+  .dl-item:hover {
+    box-shadow: 0 2px 12px rgba(44,33,23,0.08);
+  }
+  .dl-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: var(--terracotta);
+    color: #fff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dl-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .dl-type {
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 0.15rem;
+  }
+
+  .back-wrap {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .back {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--terracotta);
+  }
+</style>
