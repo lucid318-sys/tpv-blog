@@ -13,8 +13,10 @@ const posts = (await getCollection("blog")).sort(
   <main class="main">
     <div class="filter" id="filter">
       <button class="tab active" data-cat="all">전체</button>
-      <button class="tab" data-cat="column">칼럼</button>
-      <button class="tab" data-cat="case">사례</button>
+      <button class="tab" data-cat="yangdo">양도세</button>
+      <button class="tab" data-cat="sangsok">상속세</button>
+      <button class="tab" data-cat="jeungyeo">증여세</button>
+      <button class="tab" data-cat="etc">기타</button>
     </div>
     <div class="list" id="list">
       {posts.map((post) => (
@@ -24,6 +26,7 @@ const posts = (await getCollection("blog")).sort(
             title={post.data.title}
             date={post.data.date}
             category={post.data.category}
+            type={post.data.type}
             summary={post.data.summary}
           />
         </div>

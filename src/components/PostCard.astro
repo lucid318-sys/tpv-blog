@@ -3,15 +3,23 @@ interface Props {
   slug: string;
   title: string;
   date: string;
-  category: "column" | "case";
+  category: "yangdo" | "sangsok" | "jeungyeo" | "etc";
+  type?: "column" | "case";
   summary: string;
 }
-const { slug, title, date, category, summary } = Astro.props;
-const label = category === "column" ? "칼럼" : "사례";
+const { slug, title, date, category, type, summary } = Astro.props;
+const categoryLabels: Record<string, string> = {
+  yangdo: "양도세",
+  sangsok: "상속세",
+  jeungyeo: "증여세",
+  etc: "기타",
+};
+const catLabel = categoryLabels[category] ?? category;
 ---
 <a href={`/blog/${slug}/`} class="card">
   <div class="meta">
-    <span class={`badge ${category}`}>{label}</span>
+    <span class={`badge ${category}`}>{catLabel}</span>
+    {type === "case" && <span class="badge-type">사례</span>}
     <time>{date}</time>
   </div>
   <h2 class="title">{title}</h2>
@@ -41,13 +49,30 @@ const label = category === "column" ? "칼럼" : "사례";
     padding: 0.2rem 0.6rem;
     border-radius: 4px;
   }
-  .badge.column {
+  .badge.yangdo {
     background: var(--dark-brown);
     color: var(--cream);
   }
-  .badge.case {
+  .badge.sangsok {
+    background: #5B7A5E;
+    color: #fff;
+  }
+  .badge.jeungyeo {
     background: var(--terracotta);
     color: #fff;
+  }
+  .badge.etc {
+    background: #888;
+    color: #fff;
+  }
+  .badge-type {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    border: 1.2px solid var(--dark-brown);
+    color: var(--dark-brown);
+    background: transparent;
   }
   time {
     font-size: 0.8rem;

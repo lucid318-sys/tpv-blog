@@ -1,7 +1,8 @@
 ---
 title: "1세대 1주택 비과세, 2년 거주요건 꼭 채워야 할까?"
 date: "2026-07-01"
-category: "column"
+category: "yangdo"
+type: "column"
 summary: "조정대상지역 1주택자의 양도소득세 비과세 핵심 요건을 정리합니다."
 ---
 

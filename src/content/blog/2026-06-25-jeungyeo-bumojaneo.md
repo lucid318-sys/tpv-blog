@@ -1,7 +1,8 @@
 ---
 title: "부모가 자녀에게 아파트를 줄 때, 증여세는 얼마나 나올까?"
 date: "2026-06-25"
-category: "case"
+category: "jeungyeo"
+type: "case"
 summary: "시가 10억 원 아파트를 자녀에게 증여한 실제 상담 사례를 통해 증여세 계산 과정을 알아봅니다."
 ---
 
