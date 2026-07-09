@@ -554,12 +554,12 @@ for (const n of officialNotices) {
 
 <script define:vars={{ clientPeriods, clientNoticeMap, REGULATION_TYPE_LABEL }}>
   // ── 토글 헬퍼 ──
-  function setupToggle(btnId, hiddenClass, sectionId) {
+  function setupToggle(btnId, itemSelector, hiddenClass, limit, sectionId) {
     const btn = document.getElementById(btnId);
     if (!btn) return;
-    const limit = parseInt(btn.dataset.limit);
-    const total = parseInt(btn.dataset.total);
-    const extra = total - limit;
+    const allItems = document.querySelectorAll(itemSelector);
+    const extra = allItems.length - limit;
+    if (extra <= 0) return;
     let expanded = false;
 
     const collapseLabel = btnId === 'btn-timeline-more'
@@ -569,9 +569,11 @@ for (const n of officialNotices) {
 
     btn.addEventListener('click', () => {
       expanded = !expanded;
-      document.querySelectorAll('.' + hiddenClass).forEach(el => {
-        if (expanded) el.classList.remove(hiddenClass);
-        else el.classList.add(hiddenClass);
+      allItems.forEach((el, i) => {
+        if (i >= limit) {
+          if (expanded) el.classList.remove(hiddenClass);
+          else el.classList.add(hiddenClass);
+        }
       });
       btn.textContent = expanded ? expandLabel : collapseLabel;
       if (!expanded) {
@@ -579,8 +581,8 @@ for (const n of officialNotices) {
       }
     });
   }
-  setupToggle('btn-timeline-more', 'tl-hidden', 'section-timeline');
-  setupToggle('btn-notices-more', 'notice-hidden', 'section-notices');
+  setupToggle('btn-timeline-more', '#timeline .tl-card', 'tl-hidden', 4, 'section-timeline');
+  setupToggle('btn-notices-more', '.notice-list .notice-item', 'notice-hidden', 4, 'section-notices');
 
   // 카드 클릭 → 숨겨진 지역 펼침
   document.querySelectorAll('.tl-card').forEach(card => {
