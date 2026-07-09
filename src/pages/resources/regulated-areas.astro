@@ -107,8 +107,19 @@ for (const n of officialNotices) {
         </div>
       </section>
 
-      {/* ② 지정·해제 연혁 타임라인 */}
+      {/* ② 지역별 조회 */}
       <section class="section">
+        <h2 class="section-title">지역별 조회</h2>
+        <div class="region-search-wrap">
+          <input type="text" id="region-search" class="region-search" placeholder="지역명 입력 (예: 강남, 화성, 세종)" />
+        </div>
+        <div id="region-results"></div>
+        <p id="region-initial" class="region-initial">지역명을 입력하면 규제지역 지정·해제 이력을 조회합니다.</p>
+        <p id="region-empty" class="region-empty" style="display:none;">검색 결과가 없습니다.</p>
+      </section>
+
+      {/* ③ 지정·해제 연혁 타임라인 */}
+      <section class="section" id="section-timeline">
         <h2 class="section-title">지정 · 해제 연혁</h2>
         <div id="timeline">
           {timelineGroups.map((g, i) => {
@@ -116,7 +127,7 @@ for (const n of officialNotices) {
             const isDesignation = g.kind === '지정';
             return (
               <div
-                class={`tl-card ${isDesignation ? 'tl-designation' : 'tl-lift'} ${i >= 5 ? 'tl-hidden' : ''}`}
+                class={`tl-card ${isDesignation ? 'tl-designation' : 'tl-lift'} ${i >= 4 ? 'tl-hidden' : ''}`}
                 data-tl-idx={i}
               >
                 <div class="tl-header">
@@ -139,32 +150,21 @@ for (const n of officialNotices) {
             );
           })}
         </div>
-        {timelineGroups.length > 5 && (
-          <button class="btn-more" id="btn-timeline-more">
-            전체 연혁 보기 ({timelineGroups.length}건)
+        {timelineGroups.length > 4 && (
+          <button class="btn-more" id="btn-timeline-more" data-total={timelineGroups.length} data-limit="4">
+            전체 연혁 보기 ({timelineGroups.length - 4}건 더)
           </button>
         )}
       </section>
 
-      {/* ③ 지역별 조회 */}
-      <section class="section">
-        <h2 class="section-title">지역별 조회</h2>
-        <div class="region-search-wrap">
-          <input type="text" id="region-search" class="region-search" placeholder="지역명 입력 (예: 강남, 화성, 세종)" />
-        </div>
-        <div id="region-results"></div>
-        <p id="region-initial" class="region-initial">지역명을 입력하면 규제지역 지정·해제 이력을 조회합니다.</p>
-        <p id="region-empty" class="region-empty" style="display:none;">검색 결과가 없습니다.</p>
-      </section>
-
       {/* ④ 원본 공고 다운로드 */}
-      <section class="section">
+      <section class="section" id="section-notices">
         <h2 class="section-title">원본 공고 다운로드</h2>
         <div class="notice-list">
-          {sortedNotices.map((n) => {
+          {sortedNotices.map((n, i) => {
             const ext = n.file ? n.file.split('.').pop()?.toUpperCase() : null;
             return (
-              <div class="notice-item">
+              <div class={`notice-item ${i >= 4 ? 'notice-hidden' : ''}`}>
                 <div class="notice-meta">
                   <span class={`notice-kind nk-${n.kind === '지정' ? 'des' : n.kind === '해제' ? 'lift' : n.kind === '정정' ? 'fix' : 'both'}`}>{n.kind}</span>
                   <span class="notice-date">{fmtDate(n.date)}</span>
@@ -182,6 +182,11 @@ for (const n of officialNotices) {
             );
           })}
         </div>
+        {sortedNotices.length > 4 && (
+          <button class="btn-more" id="btn-notices-more" data-total={sortedNotices.length} data-limit="4">
+            공고 전체 보기 ({sortedNotices.length - 4}건 더)
+          </button>
+        )}
       </section>
 
       {/* ⑤ 고지문구 */}
@@ -404,6 +409,7 @@ for (const n of officialNotices) {
   .notice-id a:hover { text-decoration: underline; }
   .notice-unavailable { color: #999; }
   .notice-summary { font-size: 0.8rem; color: #555; line-height: 1.6; }
+  .notice-hidden { display: none; }
 
   /* ── 고지문구 ── */
   .legal-box {
@@ -547,14 +553,34 @@ for (const n of officialNotices) {
 </style>
 
 <script define:vars={{ clientPeriods, clientNoticeMap, REGULATION_TYPE_LABEL }}>
-  // ── 타임라인 인터랙션 ──
-  const btnMore = document.getElementById('btn-timeline-more');
-  if (btnMore) {
-    btnMore.addEventListener('click', () => {
-      document.querySelectorAll('.tl-hidden').forEach(el => el.classList.remove('tl-hidden'));
-      btnMore.style.display = 'none';
+  // ── 토글 헬퍼 ──
+  function setupToggle(btnId, hiddenClass, sectionId) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const limit = parseInt(btn.dataset.limit);
+    const total = parseInt(btn.dataset.total);
+    const extra = total - limit;
+    let expanded = false;
+
+    const collapseLabel = btnId === 'btn-timeline-more'
+      ? `전체 연혁 보기 (${extra}건 더)`
+      : `공고 전체 보기 (${extra}건 더)`;
+    const expandLabel = '접기';
+
+    btn.addEventListener('click', () => {
+      expanded = !expanded;
+      document.querySelectorAll('.' + hiddenClass).forEach(el => {
+        if (expanded) el.classList.remove(hiddenClass);
+        else el.classList.add(hiddenClass);
+      });
+      btn.textContent = expanded ? expandLabel : collapseLabel;
+      if (!expanded) {
+        document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     });
   }
+  setupToggle('btn-timeline-more', 'tl-hidden', 'section-timeline');
+  setupToggle('btn-notices-more', 'notice-hidden', 'section-notices');
 
   // 카드 클릭 → 숨겨진 지역 펼침
   document.querySelectorAll('.tl-card').forEach(card => {
