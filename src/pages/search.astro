@@ -33,7 +33,7 @@ import Base from "../layouts/Base.astro";
     padding: 0.85rem 1rem;
     font-size: 1rem;
     font-family: 'Pretendard', sans-serif;
-    border: 2px solid #ddd6c9;
+    border: 2px solid #E2E8F0;
     border-radius: 10px;
     background: #fff;
     color: var(--dark-brown);
@@ -50,7 +50,7 @@ import Base from "../layouts/Base.astro";
   }
   .empty, .initial {
     text-align: center;
-    color: #999;
+    color: #94A3B8;
     padding: 2rem 0;
     font-size: 0.9rem;
   }
@@ -62,11 +62,11 @@ import Base from "../layouts/Base.astro";
     sangsok: "상속세", etc: "기타",
   };
   const CAT_COLORS: Record<string, string> = {
-    chwideuk: "#4A6FA5", yangdo: "#2C2117", jeungyeo: "#D4622B",
-    sangsok: "#5B7A5E", etc: "#888",
+    chwideuk: "#4A6FA5", yangdo: "#0B4171", jeungyeo: "#2563EB",
+    sangsok: "#2D6A4F", etc: "#64748B",
   };
   const CAT_TEXT: Record<string, string> = {
-    chwideuk: "#fff", yangdo: "#F5F0E8", jeungyeo: "#fff",
+    chwideuk: "#fff", yangdo: "#F8FAFC", jeungyeo: "#fff",
     sangsok: "#fff", etc: "#fff",
   };
 
@@ -150,10 +150,11 @@ import Base from "../layouts/Base.astro";
     background: #fff;
     border-radius: 12px;
     padding: 1.25rem;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05);
     transition: box-shadow 0.2s;
   }
   .result-card:hover {
-    box-shadow: 0 4px 20px rgba(44,33,23,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   }
   .result-meta {
     margin-bottom: 0.5rem;
@@ -170,11 +171,11 @@ import Base from "../layouts/Base.astro";
     font-weight: 700;
     margin-bottom: 0.4rem;
     line-height: 1.5;
-    color: #2C2117;
+    color: #0F172A;
   }
   .result-summary {
     font-size: 0.85rem;
-    color: #666;
+    color: #64748B;
     line-height: 1.6;
   }
 </style>
