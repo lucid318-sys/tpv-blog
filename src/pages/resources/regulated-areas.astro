@@ -85,7 +85,7 @@ function summarizeRegions(regions: { sido: string; region: string; scope?: strin
 const sortedNotices = [...officialNotices].sort((a, b) => b.date.localeCompare(a.date));
 
 // 기준일 포맷
-function fmtDate(d: string) { return d.replace(/-/g, '.'); }
+function fmtDate(d: string) { return d.split('-').map((s, i) => i === 0 ? s : String(Number(s))).join('.'); }
 
 // 클라이언트에 전달할 데이터 (인라인 JSON)
 const clientPeriods = regulationPeriods.map(p => ({
@@ -189,7 +189,7 @@ for (const n of officialNotices) {
                     {g.notices.map((n) => {
                       const ext = n.file ? n.file.split('.').pop()?.toUpperCase() : null;
                       return n.file ? (
-                        <a href={n.file} target="_blank" rel="noopener" class="tl-notice-link" download>
+                        <a href={n.file} target="_blank" rel="noopener" class="tl-notice-link" {...(n.file?.endsWith('.hwp') ? { download: '' } : {})}>
                           {n.id}
                           {ext && <span class={`notice-ext ext-${ext.toLowerCase()}`}>{ext}</span>}
                         </a>
@@ -222,7 +222,7 @@ for (const n of officialNotices) {
                 <span class={`notice-reg reg-${n.type}`}>{REGULATION_TYPE_LABEL[n.type]}</span>
                 <span class={`notice-kind nk-${n.kind === '지정' ? 'des' : n.kind === '해제' ? 'lift' : n.kind === '정정' ? 'fix' : 'both'}`}>{n.kind}</span>
                 {n.file ? (
-                  <a href={n.file} target="_blank" rel="noopener" class="notice-link" download>{n.id}</a>
+                  <a href={n.file} target="_blank" rel="noopener" class="notice-link" {...(n.file?.endsWith('.hwp') ? { download: '' } : {})}>{n.id}</a>
                 ) : (
                   <span class="notice-unavailable">{n.id}</span>
                 )}
@@ -594,6 +594,7 @@ for (const n of officialNotices) {
     background: #fff; border: 1px solid #eae4d8; border-radius: 8px;
     padding: 0.75rem 1rem; margin-bottom: 0.4rem;
     font-size: 0.8rem; line-height: 1.6;
+    word-break: keep-all; overflow-wrap: break-word;
   }
   .rr-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
   .rr-pill {
@@ -614,7 +615,7 @@ for (const n of officialNotices) {
     border-bottom: 2px solid var(--dark-brown);
   }
   .rr-period { font-weight: 600; color: var(--dark-brown); font-size: 0.78rem; }
-  .rr-scope { font-size: 0.73rem; color: #999; margin-top: 0.1rem; }
+  .rr-scope { font-size: 0.73rem; color: #999; margin-top: 0.1rem; word-break: keep-all; overflow-wrap: break-word; }
   .rr-badges { display: inline-flex; gap: 0.3rem; margin-left: 0.5rem; vertical-align: middle; }
   .rr-badge {
     font-size: 0.6rem; font-weight: 700; padding: 0.05rem 0.35rem;
@@ -691,11 +692,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── 지역별 조회 ──
   const typeOrder = ['adjustment', 'overheated', 'speculation'];
+  const SIDO_ALIAS = {
+    '서울':'서울특별시','부산':'부산광역시','대구':'대구광역시','인천':'인천광역시',
+    '광주':'광주광역시','대전':'대전광역시','울산':'울산광역시','세종':'세종특별자치시',
+    '경기':'경기도','강원':'강원도','충북':'충청북도','충남':'충청남도',
+    '전북':'전라북도','전남':'전라남도','경북':'경상북도','경남':'경상남도',
+    '제주':'제주특별자치도',
+  };
   const input = document.getElementById('region-search');
   if (!input) return;
   const resultsEl = document.getElementById('region-results');
   const initialEl = document.getElementById('region-initial');
   const emptyEl = document.getElementById('region-empty');
+
+  // 구(舊) 투기지역 토글 — 이벤트 위임
+  resultsEl.addEventListener('click', (e) => {
+    const toggleBtn = e.target.closest('.rr-old-toggle');
+    if (!toggleBtn) return;
+    const rows = toggleBtn.nextElementSibling;
+    if (rows.classList.contains('rr-old-hidden')) {
+      rows.classList.remove('rr-old-hidden');
+      toggleBtn.textContent = '구(舊) 투기지역 이력 접기';
+    } else {
+      rows.classList.add('rr-old-hidden');
+      toggleBtn.textContent = `구(舊) 투기지역 이력 보기 (2003~2012 · ${rows.querySelectorAll('.rr-row').length}건)`;
+    }
+  });
 
   let selectedKey = null;
 
@@ -710,8 +732,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     initialEl.style.display = 'none';
 
+    // 축약형 확장
+    const expanded = SIDO_ALIAS[q];
+    const queries = expanded ? [q, expanded] : [q];
+
     const matches = clientPeriods
-      .filter(p => p.sido.includes(q) || p.region.includes(q) || (p.scope || '').includes(q));
+      .filter(p => queries.some(qq => p.sido.includes(qq) || p.region.includes(qq) || (p.scope || '').includes(qq)));
 
     if (matches.length === 0) {
       resultsEl.innerHTML = '';
@@ -749,7 +775,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const key = r.sido + '|' + r.region;
       selectedKey = key;
       resultsEl.innerHTML = renderDetail(r.sido + ' ' + r.region, r.records);
-      bindOldToggle();
       return;
     }
 
@@ -784,14 +809,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const entry = regionMap.get(key);
         detailArea.innerHTML = renderDetail(entry.sido + ' ' + entry.region, entry.records);
-        bindOldToggle();
-      });
+        });
     });
   }
 
   function renderDetail(title, records) {
     const sorted = records.sort((a, b) =>
-      typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || b.designated.localeCompare(a.designated)
+      typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) ||
+      (b.designated || b.lifted || '').localeCompare(a.designated || a.lifted || '')
     );
 
     // 규제종류별 그룹
@@ -831,7 +856,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderRows(items) {
     return items.map(p => {
-      const period = fmtD(p.designated) + ' ~ ' + (p.lifted ? fmtD(p.lifted) : '현재');
+      const period = (p.designated ? fmtD(p.designated) : '지정일 미상') + ' ~ ' + (p.lifted ? fmtD(p.lifted) : '현재');
       let badges = '';
       if (!p.lifted) badges += '<span class="rr-badge rr-active">현재 지정 중</span>';
       if (p.redesignation) badges += '<span class="rr-badge rr-redesignation">재지정</span>';
@@ -852,20 +877,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
-  function bindOldToggle() {
-    resultsEl.querySelectorAll('.rr-old-toggle').forEach(toggleBtn => {
-      toggleBtn.addEventListener('click', () => {
-        const rows = toggleBtn.nextElementSibling;
-        if (rows.classList.contains('rr-old-hidden')) {
-          rows.classList.remove('rr-old-hidden');
-          toggleBtn.textContent = '구(舊) 투기지역 이력 접기';
-        } else {
-          rows.classList.add('rr-old-hidden');
-          toggleBtn.textContent = `구(舊) 투기지역 이력 보기 (2003~2012 · ${rows.querySelectorAll('.rr-row').length}건)`;
-        }
-      });
-    });
-  }
 
   function renderNoticeLink(label, noticeText) {
     // noticeText: "국토교통부공고 제2025-1223호(2025.10.16)" 형태
@@ -874,14 +885,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (noticeText.includes(id.replace('국토교통부공고 ', ''))) {
         if (info.file) {
           const ext = info.file.split('.').pop().toUpperCase();
-          return `${label}: <a href="${info.file}" target="_blank" rel="noopener" download>${noticeText}</a> <span class="rr-badge" style="font-size:0.55rem">${ext}</span> `;
+          const dl = ext === 'HWP' ? ' download' : '';
+          return `${label}: <a href="${info.file}" target="_blank" rel="noopener"${dl}>${noticeText}</a> <span class="rr-badge" style="font-size:0.55rem">${ext}</span> `;
         }
       }
     }
     return `${label}: ${noticeText} `;
   }
 
-  function fmtD(d) { return d.replace(/-/g, '.'); }
+  function fmtD(d) { return d.split('-').map((s, i) => i === 0 ? s : String(Number(s))).join('.'); }
 
   input.addEventListener('input', (e) => search(e.target.value));
 
