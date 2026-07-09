@@ -527,8 +527,9 @@ for (const n of officialNotices) {
     padding: 0.75rem 1rem; margin-bottom: 0.4rem;
     font-size: 0.8rem; line-height: 1.6;
   }
-  .rr-period { font-weight: 600; color: var(--dark-brown); }
-  .rr-scope { font-size: 0.75rem; color: #999; margin-left: 0.5rem; }
+  .rr-name { font-size: 0.9rem; font-weight: 700; color: var(--dark-brown); margin-bottom: 0.15rem; }
+  .rr-period { font-weight: 600; color: var(--dark-brown); font-size: 0.78rem; }
+  .rr-scope { font-size: 0.73rem; color: #999; margin-top: 0.1rem; }
   .rr-badges { display: inline-flex; gap: 0.3rem; margin-left: 0.5rem; vertical-align: middle; }
   .rr-badge {
     font-size: 0.6rem; font-weight: 700; padding: 0.05rem 0.35rem;
@@ -697,10 +698,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (p.designationNotice) noticeHtml += renderNoticeLink('지정', p.designationNotice);
       if (p.liftNotice) noticeHtml += renderNoticeLink('해제', p.liftNotice);
 
+      const name = p.sido + ' ' + p.region;
       return `<div class="rr-row">
+        <p class="rr-name">${name}</p>
         <span class="rr-period">${period}</span>
-        ${p.scope ? `<span class="rr-scope">${p.scope}</span>` : ''}
         ${badges ? `<span class="rr-badges">${badges}</span>` : ''}
+        ${p.scope ? `<p class="rr-scope">${p.scope}</p>` : ''}
         ${noticeHtml ? `<p class="rr-notice">${noticeHtml}</p>` : ''}
         ${p.note ? `<p class="rr-note">${p.note}</p>` : ''}
       </div>`;
