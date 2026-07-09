@@ -153,10 +153,9 @@ const taxInfo = TAX_INFO[post.data.category];
     max-width: 100%;
     background: #fff;
     border-radius: 12px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #eae4d8;
     padding: 2.5rem;
     overflow-x: hidden;
-    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05);
   }
 
   /* ── Meta ── */
@@ -175,8 +174,8 @@ const taxInfo = TAX_INFO[post.data.category];
   .cat-chwideuk { background: #4A6FA5; color: #fff; }
   .cat-yangdo { background: var(--dark-brown); color: var(--cream); }
   .cat-jeungyeo { background: var(--terracotta); color: #fff; }
-  .cat-sangsok { background: #2D6A4F; color: #fff; }
-  .cat-etc { background: #64748B; color: #fff; }
+  .cat-sangsok { background: #5B7A5E; color: #fff; }
+  .cat-etc { background: #888; color: #fff; }
   .badge-type {
     font-size: 0.7rem;
     font-weight: 600;
@@ -187,7 +186,7 @@ const taxInfo = TAX_INFO[post.data.category];
   }
   time {
     font-size: 0.8rem;
-    color: #94A3B8;
+    color: #999;
   }
 
   /* ── Tags ── */
@@ -199,7 +198,7 @@ const taxInfo = TAX_INFO[post.data.category];
   }
   .tag {
     display: inline-block;
-    background: #F1F5F9;
+    background: #f4f0e8;
     color: var(--dark-brown);
     font-size: 0.8rem;
     font-weight: 600;
@@ -208,7 +207,7 @@ const taxInfo = TAX_INFO[post.data.category];
     transition: background 0.15s;
   }
   .tag:hover {
-    background: #E2E8F0;
+    background: #e8e0d2;
   }
 
   /* ── Title & Divider ── */
@@ -223,7 +222,7 @@ const taxInfo = TAX_INFO[post.data.category];
   .divider {
     border: none;
     height: 1px;
-    background: #E2E8F0;
+    background: #eae4d8;
     margin-bottom: 2rem;
   }
 
@@ -231,7 +230,7 @@ const taxInfo = TAX_INFO[post.data.category];
   .body {
     font-size: 0.95rem;
     line-height: 1.85;
-    color: #334155;
+    color: #3a3229;
     counter-reset: h2counter;
   }
   .body :global(h2) {
@@ -241,8 +240,8 @@ const taxInfo = TAX_INFO[post.data.category];
     color: var(--dark-brown);
     margin: 3rem 0 0.75rem;
     padding: 0.75rem 1rem 0.75rem 1rem;
-    background: #EFF4F9;
-    border-left: 4px solid #0B4171;
+    background: #F1E3E3;
+    border-left: 4px solid #7B3B3B;
     border-radius: 0 8px 8px 0;
     display: flex;
     align-items: flex-start;
@@ -257,7 +256,7 @@ const taxInfo = TAX_INFO[post.data.category];
     min-width: 1.5rem;
     height: 1.5rem;
     margin-top: 0.1em;
-    background: #0B4171;
+    background: #7B3B3B;
     color: #fff;
     font-family: 'Pretendard', sans-serif;
     font-size: 0.75rem;
@@ -271,7 +270,7 @@ const taxInfo = TAX_INFO[post.data.category];
     color: var(--dark-brown);
     margin: 2.5rem 0 1rem;
     padding: 0.5rem 0.75rem;
-    background: #F1F5F9;
+    background: #f7f3ea;
     border-left: 4px solid var(--dark-brown);
     border-radius: 0 6px 6px 0;
   }
@@ -295,7 +294,7 @@ const taxInfo = TAX_INFO[post.data.category];
     -webkit-overflow-scrolling: touch;
     margin: 1.25rem 0;
     border-radius: 8px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #e8e2d6;
     max-width: 100%;
   }
   .body :global(table) {
@@ -313,28 +312,28 @@ const taxInfo = TAX_INFO[post.data.category];
   }
   .body :global(td) {
     padding: 0.6rem 1rem;
-    border-top: 1px solid #E2E8F0;
+    border-top: 1px solid #e8e2d6;
   }
   .body :global(tr:nth-child(even) td) {
-    background: #F8FAFC;
+    background: #faf7f1;
   }
 
   /* ── Blockquote ── */
   .body :global(blockquote) {
-    background: #F1F5F9;
+    background: #faf7f1;
     border-left: 3px solid var(--terracotta);
     padding: 1rem 1.25rem;
     margin: 1.5rem 0;
     border-radius: 0 8px 8px 0;
     font-size: 0.9rem;
-    color: #64748B;
+    color: #555;
   }
 
   /* ── Sidebar Search ── */
   .sidebar-search {
     background: #fff;
     border-radius: 12px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #eae4d8;
     padding: 1.25rem;
   }
   .search-input-wrap {
@@ -344,13 +343,13 @@ const taxInfo = TAX_INFO[post.data.category];
   .search-input {
     flex: 1;
     min-width: 0;
-    border: 1.5px solid #E2E8F0;
+    border: 1.5px solid #ddd6c9;
     border-right: none;
     border-radius: 8px 0 0 8px;
     padding: 0.5rem 0.65rem;
     font-size: 0.8rem;
     font-family: 'Pretendard', sans-serif;
-    background: #F8FAFC;
+    background: #faf7f2;
     color: var(--dark-brown);
     outline: none;
   }
@@ -372,7 +371,7 @@ const taxInfo = TAX_INFO[post.data.category];
   .sidebar-taxinfo {
     background: #fff;
     border-radius: 12px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #eae4d8;
     padding: 1.25rem;
   }
   .si-table {
@@ -382,7 +381,7 @@ const taxInfo = TAX_INFO[post.data.category];
     margin-bottom: 0.75rem;
   }
   .si-table th {
-    background: #F1F5F9;
+    background: #f0eae0;
     color: var(--dark-brown);
     font-weight: 700;
     padding: 0.35rem 0.5rem;
@@ -391,7 +390,7 @@ const taxInfo = TAX_INFO[post.data.category];
   }
   .si-table td {
     padding: 0.3rem 0.5rem;
-    border-top: 1px solid #E2E8F0;
+    border-top: 1px solid #eae4d8;
     white-space: nowrap;
   }
   .si-sub {
@@ -402,21 +401,21 @@ const taxInfo = TAX_INFO[post.data.category];
   }
   .si-note {
     font-size: 0.7rem;
-    color: #94A3B8;
+    color: #999;
     margin-bottom: 0.75rem;
   }
   .si-footer {
-    border-top: 1px solid #E2E8F0;
+    border-top: 1px solid #eae4d8;
     padding-top: 0.6rem;
   }
   .si-footer p {
     font-size: 0.7rem;
-    color: #94A3B8;
+    color: #777;
     line-height: 1.6;
   }
   .si-placeholder {
     font-size: 0.8rem;
-    color: #94A3B8;
+    color: #999;
     text-align: center;
     padding: 1rem 0;
   }
@@ -435,7 +434,7 @@ const taxInfo = TAX_INFO[post.data.category];
   .sidebar-related {
     background: #fff;
     border-radius: 12px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #eae4d8;
     padding: 1.25rem;
   }
   .sidebar-title {
@@ -448,7 +447,7 @@ const taxInfo = TAX_INFO[post.data.category];
     list-style: none;
   }
   .sidebar-related li {
-    border-top: 1px solid #E2E8F0;
+    border-top: 1px solid #f0ebe3;
     padding: 0.6rem 0;
   }
   .sidebar-related li:first-child {
@@ -482,8 +481,8 @@ const taxInfo = TAX_INFO[post.data.category];
   }
   .cta-btn {
     display: inline-block;
-    background: #FEE500;
-    color: #191919;
+    background: var(--terracotta);
+    color: #fff;
     font-weight: 700;
     font-size: 0.85rem;
     padding: 0.55rem 1.25rem;
