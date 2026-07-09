@@ -879,17 +879,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   function renderNoticeLink(label, noticeText) {
-    // noticeText: "국토교통부공고 제2025-1223호(2025.10.16)" 형태
-    // clientNoticeMap 키와 매칭
-    for (const [id, info] of Object.entries(clientNoticeMap)) {
-      if (noticeText.includes(id.replace('국토교통부공고 ', ''))) {
-        if (info.file) {
+    const re = /제(\d+-\d+)호/g;
+    let match;
+    const links = [];
+    while ((match = re.exec(noticeText)) !== null) {
+      const num = match[1];
+      for (const [id, info] of Object.entries(clientNoticeMap)) {
+        if (id.includes(num) && info.file) {
           const ext = info.file.split('.').pop().toUpperCase();
           const dl = ext === 'HWP' ? ' download' : '';
-          return `${label}: <a href="${info.file}" target="_blank" rel="noopener"${dl}>${noticeText}</a> <span class="rr-badge" style="font-size:0.55rem">${ext}</span> `;
+          links.push(`<a href="${info.file}" target="_blank" rel="noopener"${dl}>${id}</a> <span class="rr-badge" style="font-size:0.55rem">${ext}</span>`);
+          break;
         }
       }
     }
+    if (links.length > 0) return `${label}: ${links.join(' ')} `;
     return `${label}: ${noticeText} `;
   }
 
