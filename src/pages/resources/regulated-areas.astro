@@ -527,7 +527,24 @@ for (const n of officialNotices) {
     padding: 0.75rem 1rem; margin-bottom: 0.4rem;
     font-size: 0.8rem; line-height: 1.6;
   }
-  .rr-name { font-size: 0.9rem; font-weight: 700; color: var(--dark-brown); margin-bottom: 0.15rem; }
+  .rr-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+  .rr-pill {
+    font-size: 0.8rem; font-weight: 600; padding: 0.3rem 0.75rem;
+    border-radius: 20px; cursor: pointer; border: 1.5px solid #7B3B3B;
+    color: #7B3B3B; background: transparent;
+    font-family: 'Pretendard', sans-serif; transition: all 0.15s;
+  }
+  .rr-pill:hover { background: #F1E3E3; }
+  .rr-pill-active { background: #7B3B3B; color: #fff; border-color: #7B3B3B; }
+  .rr-pill-active:hover { background: #5a2c2c; }
+  .rr-pill-selected { box-shadow: 0 0 0 2px #7B3B3B; }
+  .rr-pill-active.rr-pill-selected { background: #5a2c2c; }
+  .rr-detail { margin-top: 0.5rem; }
+  .rr-detail-title {
+    font-size: 1rem; font-weight: 700; color: var(--dark-brown);
+    margin-bottom: 0.75rem; padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--dark-brown);
+  }
   .rr-period { font-weight: 600; color: var(--dark-brown); font-size: 0.78rem; }
   .rr-scope { font-size: 0.73rem; color: #999; margin-top: 0.1rem; }
   .rr-badges { display: inline-flex; gap: 0.3rem; margin-left: 0.5rem; vertical-align: middle; }
@@ -612,8 +629,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const initialEl = document.getElementById('region-initial');
   const emptyEl = document.getElementById('region-empty');
 
+  let selectedKey = null;
+
   function search(query) {
     const q = query.trim();
+    selectedKey = null;
     if (!q) {
       resultsEl.innerHTML = '';
       emptyEl.style.display = 'none';
@@ -623,8 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initialEl.style.display = 'none';
 
     const matches = clientPeriods
-      .filter(p => p.sido.includes(q) || p.region.includes(q) || (p.scope || '').includes(q))
-      .sort((a, b) => typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || b.designated.localeCompare(a.designated));
+      .filter(p => p.sido.includes(q) || p.region.includes(q) || (p.scope || '').includes(q));
 
     if (matches.length === 0) {
       resultsEl.innerHTML = '';
@@ -633,20 +652,93 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     emptyEl.style.display = 'none';
 
+    // sido+region 고유값 추출
+    const regionMap = new Map();
+    for (const m of matches) {
+      const key = m.sido + '|' + m.region;
+      if (!regionMap.has(key)) {
+        regionMap.set(key, { sido: m.sido, region: m.region, active: false, records: [] });
+      }
+      const entry = regionMap.get(key);
+      entry.records.push(m);
+      if (!m.lifted) entry.active = true;
+    }
+    const regions = [...regionMap.values()];
+
+    // 정렬: 현재 지정 중 먼저 → 가나다순
+    regions.sort((a, b) => {
+      if (a.active !== b.active) return a.active ? -1 : 1;
+      return (a.sido + a.region).localeCompare(b.sido + b.region);
+    });
+
+    // 시도가 여러 개 섞여있는지
+    const sidos = new Set(regions.map(r => r.sido));
+    const multiSido = sidos.size > 1;
+
+    // 1개뿐이면 바로 상세 펼침
+    if (regions.length === 1) {
+      const r = regions[0];
+      const key = r.sido + '|' + r.region;
+      selectedKey = key;
+      resultsEl.innerHTML = renderDetail(r.sido + ' ' + r.region, r.records);
+      bindOldToggle();
+      return;
+    }
+
+    // 알약 목록 렌더링
+    let html = '<div class="rr-pills">';
+    for (const r of regions) {
+      const key = r.sido + '|' + r.region;
+      const label = multiSido ? (r.sido.replace(/특별시|광역시|특별자치시|특별자치도/, '') + ' ' + r.region) : r.region;
+      const cls = r.active ? 'rr-pill rr-pill-active' : 'rr-pill';
+      html += `<button class="${cls}" data-key="${key}">${label}</button>`;
+    }
+    html += '</div><div id="rr-detail-area"></div>';
+    resultsEl.innerHTML = html;
+
+    // 알약 클릭 이벤트
+    resultsEl.querySelectorAll('.rr-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const key = pill.dataset.key;
+        const detailArea = document.getElementById('rr-detail-area');
+
+        // 같은 알약 재클릭 → 닫기
+        if (selectedKey === key) {
+          selectedKey = null;
+          detailArea.innerHTML = '';
+          resultsEl.querySelectorAll('.rr-pill').forEach(p => p.classList.remove('rr-pill-selected'));
+          return;
+        }
+
+        selectedKey = key;
+        resultsEl.querySelectorAll('.rr-pill').forEach(p => p.classList.remove('rr-pill-selected'));
+        pill.classList.add('rr-pill-selected');
+
+        const entry = regionMap.get(key);
+        detailArea.innerHTML = renderDetail(entry.sido + ' ' + entry.region, entry.records);
+        bindOldToggle();
+      });
+    });
+  }
+
+  function renderDetail(title, records) {
+    const sorted = records.sort((a, b) =>
+      typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || b.designated.localeCompare(a.designated)
+    );
+
     // 규제종류별 그룹
     const groups = {};
-    for (const m of matches) {
+    for (const m of sorted) {
       if (!groups[m.type]) groups[m.type] = [];
       groups[m.type].push(m);
     }
 
-    let html = '';
+    let html = `<div class="rr-detail"><p class="rr-detail-title">${title}</p>`;
     for (const type of typeOrder) {
       if (!groups[type]) continue;
       const items = groups[type];
       const label = REGULATION_TYPE_LABEL[type];
 
-      // 구(舊) 투기지역 분리
       let mainItems = items;
       let oldItems = [];
       if (type === 'speculation') {
@@ -658,31 +750,15 @@ document.addEventListener('DOMContentLoaded', () => {
       html += renderRows(mainItems);
 
       if (oldItems.length > 0) {
-        html += `<button class="rr-old-toggle" data-toggle="old-speculation">구(舊) 투기지역 이력 보기 (2003~2012 · ${oldItems.length}건)</button>`;
-        html += `<div class="rr-old-hidden" id="old-speculation-rows">`;
+        html += `<button class="rr-old-toggle">구(舊) 투기지역 이력 보기 (2003~2012 · ${oldItems.length}건)</button>`;
+        html += `<div class="rr-old-hidden rr-old-rows">`;
         html += renderRows(oldItems);
         html += `</div>`;
       }
-
       html += `</div>`;
     }
-
-    resultsEl.innerHTML = html;
-
-    // 구(舊) 투기지역 토글
-    const toggleBtn = resultsEl.querySelector('.rr-old-toggle');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        const rows = document.getElementById('old-speculation-rows');
-        if (rows.classList.contains('rr-old-hidden')) {
-          rows.classList.remove('rr-old-hidden');
-          toggleBtn.textContent = '구(舊) 투기지역 이력 접기';
-        } else {
-          rows.classList.add('rr-old-hidden');
-          toggleBtn.textContent = `구(舊) 투기지역 이력 보기 (2003~2012 · ${rows.querySelectorAll('.rr-row').length}건)`;
-        }
-      });
-    }
+    html += '</div>';
+    return html;
   }
 
   function renderRows(items) {
@@ -698,9 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (p.designationNotice) noticeHtml += renderNoticeLink('지정', p.designationNotice);
       if (p.liftNotice) noticeHtml += renderNoticeLink('해제', p.liftNotice);
 
-      const name = p.sido + ' ' + p.region;
       return `<div class="rr-row">
-        <p class="rr-name">${name}</p>
         <span class="rr-period">${period}</span>
         ${badges ? `<span class="rr-badges">${badges}</span>` : ''}
         ${p.scope ? `<p class="rr-scope">${p.scope}</p>` : ''}
@@ -708,6 +782,21 @@ document.addEventListener('DOMContentLoaded', () => {
         ${p.note ? `<p class="rr-note">${p.note}</p>` : ''}
       </div>`;
     }).join('');
+  }
+
+  function bindOldToggle() {
+    resultsEl.querySelectorAll('.rr-old-toggle').forEach(toggleBtn => {
+      toggleBtn.addEventListener('click', () => {
+        const rows = toggleBtn.nextElementSibling;
+        if (rows.classList.contains('rr-old-hidden')) {
+          rows.classList.remove('rr-old-hidden');
+          toggleBtn.textContent = '구(舊) 투기지역 이력 접기';
+        } else {
+          rows.classList.add('rr-old-hidden');
+          toggleBtn.textContent = `구(舊) 투기지역 이력 보기 (2003~2012 · ${rows.querySelectorAll('.rr-row').length}건)`;
+        }
+      });
+    });
   }
 
   function renderNoticeLink(label, noticeText) {
