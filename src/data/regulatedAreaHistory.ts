@@ -5,10 +5,9 @@
 //   - 조정대상지역: 연혁별 현황(2026.7.1 기준) + 지역별 지정·해제 표
 //   - 투기과열지구: 연혁별 현황(2026.7.1 기준)
 //   - 투기지역(소득세법상 지정지역): 2023.01.05 기준 + 2012.5.15 기준(구 투기지역)
-// 검증: 국토교통부 공고 원문 27건(2017.8.3~2025.10.16)과 대조 완료(2026.7.9) — 불일치 0건.
+// 검증: 국토교통부 공고 원문 29건(2017.8.3~2026.7.1)과 대조 완료(2026.7.9) — 불일치 0건.
 //   공고 확보분은 designationNotice/liftNotice 필드에 근거 공고 기재.
-//   미확보: ① 2022.9.26 투기과열지구 해제 공고(인천 연수·남동·서구, 세종) ② 2026.7.1
-//   조정대상지역·투기과열지구 지정 공고(화성 동탄구, 용인 기흥구, 구리시) ③ 투기지역(기획재정부) 공고 전체.
+//   미확보: ① 2022.9.26 투기과열지구 해제 공고(인천 연수·남동·서구, 세종) ② 투기지역(기획재정부) 공고 전체.
 // 주의: 본 데이터는 참고용 정리본이며, 세무 판단 시 반드시 원문 공고를 확인할 것.
 // =============================================================================
 
@@ -88,6 +87,8 @@ export const officialNotices: OfficialNotice[] = [
   { id: '국토교통부공고 제2023-2호', date: '2023-01-05', kind: '해제', type: 'adjustment', summary: '조정대상지역 해제 — 서울 21개구, 과천, 성남 수정·분당구, 하남, 광명 (강남·서초·송파·용산만 존치)', file: '/notices/2023-2.pdf' },
   { id: '국토교통부공고 제2025-1223호', date: '2025-10-16', kind: '지정', type: 'adjustment', summary: '조정대상지역 지정 — 서울 21개구, 수원 장안·팔달·영통구, 성남 수정·중원·분당구, 안양 동안구, 과천, 용인 수지구, 광명, 하남, 의왕', file: '/notices/2025-1223.pdf' },
   { id: '국토교통부공고 제2025-1225호', date: '2025-10-16', kind: '지정', type: 'overheated', summary: '투기과열지구 지정 — 서울 21개구, 수원 장안·팔달·영통구, 성남 수정·중원·분당구, 안양 동안구, 과천, 용인 수지구, 광명, 하남, 의왕', file: '/notices/2025-1225.pdf' },
+  { id: '국토교통부공고 제2026-882호', date: '2026-07-01', kind: '지정', type: 'adjustment', summary: '조정대상지역 지정 — 화성시 동탄구, 용인시 기흥구, 구리시', file: '/notices/2026-882.pdf' },
+  { id: '국토교통부공고 제2026-883호', date: '2026-07-01', kind: '지정', type: 'overheated', summary: '투기과열지구 지정 — 화성시 동탄구, 용인시 기흥구, 구리시', file: '/notices/2026-883.pdf' },
 ];
 
 /** 세법 적용상 주의사항 (페이지 하단 고정 노출용) */
@@ -193,13 +194,13 @@ export const regulationPeriods: RegulationPeriod[] = [
   { type: 'adjustment', sido: '경기도', region: '용인시 기흥구', designated: '2018-12-31', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2018-1766호(2018.12.31)', liftNotice: '국토교통부공고 제2022-1408호(2022.11.14)' },
   { type: 'adjustment', sido: '경기도', region: '용인시 처인구', scope: '포곡읍, 모현면, 백암면, 양지면 및 원삼면 가재월리·사암리·미평리·좌항리·맹리·두창리 제외', designated: '2020-06-19', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2020-828호(2020.6.19)', liftNotice: '국토교통부공고 제2022-1408호(2022.11.14)' },
   { type: 'adjustment', sido: '경기도', region: '용인시 수지구', designated: '2025-10-16', redesignation: true, designationNotice: '국토교통부공고 제2025-1223호(2025.10.16)' },
-  { type: 'adjustment', sido: '경기도', region: '용인시 기흥구', designated: '2026-07-01', redesignation: true },
+  { type: 'adjustment', sido: '경기도', region: '용인시 기흥구', designated: '2026-07-01', redesignation: true, designationNotice: '국토교통부공고 제2026-882호(2026.7.1)' },
   { type: 'adjustment', sido: '경기도', region: '화성시 동탄2택지개발지구', scope: '반송동·석우동, 동탄면 금곡리·목리·방교리·산척리·송리·신리·영천리·오산리·장지리·중리·청계리 일원에 지정된 택지개발지구에 한함', designated: '2017-09-06', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2017-1305호(2017.9.6)', liftNotice: '국토교통부공고 제2022-1408호(2022.11.14)' },
   { type: 'adjustment', sido: '경기도', region: '화성시', scope: '전 지역', designated: '2020-06-19', lifted: '2022-11-14', note: '서신면은 2022.7.5 선(先)해제', designationNotice: '국토교통부공고 제2020-828호(2020.6.19)·제2020-877호 정정(2020.6.29)', liftNotice: '국토교통부공고 제2022-1408호(2022.11.14)' },
   { type: 'adjustment', sido: '경기도', region: '화성시 서신면', designated: '2020-06-19', lifted: '2022-07-05', designationNotice: '국토교통부공고 제2020-828호(2020.6.19)·제2020-877호 정정(2020.6.29)', liftNotice: '국토교통부공고 제2022-883호(2022.7.5)' },
-  { type: 'adjustment', sido: '경기도', region: '화성시 동탄구', designated: '2026-07-01', redesignation: true, note: '2026년 구제(區制) 시행에 따른 동탄구 단위 지정' },
+  { type: 'adjustment', sido: '경기도', region: '화성시 동탄구', designated: '2026-07-01', redesignation: true, designationNotice: '국토교통부공고 제2026-882호(2026.7.1)', note: '2026년 구제(區制) 시행에 따른 동탄구 단위 지정' },
   { type: 'adjustment', sido: '경기도', region: '구리시', designated: '2018-08-28', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2018-1088호(2018.8.28)', liftNotice: '국토교통부공고 제2022-1408호(2022.11.14)' },
-  { type: 'adjustment', sido: '경기도', region: '구리시', designated: '2026-07-01', redesignation: true },
+  { type: 'adjustment', sido: '경기도', region: '구리시', designated: '2026-07-01', redesignation: true, designationNotice: '국토교통부공고 제2026-882호(2026.7.1)' },
   { type: 'adjustment', sido: '경기도', region: '고양시', scope: '삼송택지개발지구, 원흥·지축·향동 공공주택지구, 덕은·킨텍스(고양국제전시장)1단계·고양관광문화단지(한류월드) 도시개발구역 제외', designated: '2017-09-06', lifted: '2019-11-08', note: '2019.11.8 해제 시 좌기 지구는 해제 제외(지정 유지)', designationNotice: '국토교통부공고 제2017-1305호(2017.9.6)', liftNotice: '국토교통부공고 제2019-1540호(2019.11.8)' },
   { type: 'adjustment', sido: '경기도', region: '고양시 삼송택지개발지구 등', scope: '삼송택지개발지구, 원흥·지축·향동 공공주택지구, 덕은·킨텍스(고양국제전시장)1단계·고양관광문화단지(한류월드) 도시개발구역', designated: '2017-09-06', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2017-1305호(2017.9.6)', liftNotice: '국토교통부공고 제2022-1408호(2022.11.14)' },
   { type: 'adjustment', sido: '경기도', region: '고양시', scope: '전 지역', designated: '2020-06-19', lifted: '2022-11-14', redesignation: true, designationNotice: '국토교통부공고 제2020-828호(2020.6.19)', liftNotice: '국토교통부공고 제2022-1408호(2022.11.14)' },
@@ -375,16 +376,16 @@ export const regulationPeriods: RegulationPeriod[] = [
   { type: 'overheated', sido: '경기도', region: '안산시 단원구', designated: '2020-06-19', lifted: '2022-11-14', note: '대부동동·대부남동·대부북동·선감동·풍도동은 2022.7.5 선(先)해제', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)', liftNotice: '국토교통부공고 제2022-1407호(2022.11.14)' },
   { type: 'overheated', sido: '경기도', region: '안산시 단원구 대부동동·대부남동·대부북동·선감동·풍도동', designated: '2020-06-19', lifted: '2022-07-05', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)', liftNotice: '국토교통부공고 제2022-882호(2022.7.5)' },
   { type: 'overheated', sido: '경기도', region: '구리시', designated: '2020-06-19', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)', liftNotice: '국토교통부공고 제2022-1407호(2022.11.14)' },
-  { type: 'overheated', sido: '경기도', region: '구리시', designated: '2026-07-01', redesignation: true },
+  { type: 'overheated', sido: '경기도', region: '구리시', designated: '2026-07-01', redesignation: true, designationNotice: '국토교통부공고 제2026-883호(2026.7.1)' },
   { type: 'overheated', sido: '경기도', region: '군포시', designated: '2020-06-19', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)', liftNotice: '국토교통부공고 제2022-1407호(2022.11.14)' },
   { type: 'overheated', sido: '경기도', region: '의왕시', designated: '2020-06-19', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)', liftNotice: '국토교통부공고 제2022-1407호(2022.11.14)' },
   { type: 'overheated', sido: '경기도', region: '의왕시', designated: '2025-10-16', redesignation: true, designationNotice: '국토교통부공고 제2025-1225호(2025.10.16)' },
   { type: 'overheated', sido: '경기도', region: '용인시 수지구', designated: '2020-06-19', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)', liftNotice: '국토교통부공고 제2022-1407호(2022.11.14)' },
   { type: 'overheated', sido: '경기도', region: '용인시 수지구', designated: '2025-10-16', redesignation: true, designationNotice: '국토교통부공고 제2025-1225호(2025.10.16)' },
   { type: 'overheated', sido: '경기도', region: '용인시 기흥구', designated: '2020-06-19', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)', liftNotice: '국토교통부공고 제2022-1407호(2022.11.14)' },
-  { type: 'overheated', sido: '경기도', region: '용인시 기흥구', designated: '2026-07-01', redesignation: true },
+  { type: 'overheated', sido: '경기도', region: '용인시 기흥구', designated: '2026-07-01', redesignation: true, designationNotice: '국토교통부공고 제2026-883호(2026.7.1)' },
   { type: 'overheated', sido: '경기도', region: '화성시 동탄2택지개발지구', scope: '화성시 반송동·석우동, 동탄면 금곡리·목리·방교리·산척리·송리·신리·영천리·오산리·장지리·중리·청계리 일원에 지정된 동탄2택지개발지구에 한함', designated: '2020-06-19', lifted: '2022-11-14', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)', liftNotice: '국토교통부공고 제2022-1407호(2022.11.14)' },
-  { type: 'overheated', sido: '경기도', region: '화성시 동탄구', designated: '2026-07-01', redesignation: true, note: '2026년 구제(區制) 시행에 따른 동탄구 단위 지정' },
+  { type: 'overheated', sido: '경기도', region: '화성시 동탄구', designated: '2026-07-01', redesignation: true, designationNotice: '국토교통부공고 제2026-883호(2026.7.1)', note: '2026년 구제(區制) 시행에 따른 동탄구 단위 지정' },
   // --- 인천광역시 ---
   { type: 'overheated', sido: '인천광역시', region: '연수구', designated: '2020-06-19', lifted: '2022-09-26', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)' },
   { type: 'overheated', sido: '인천광역시', region: '남동구', designated: '2020-06-19', lifted: '2022-09-26', designationNotice: '국토교통부공고 제2020-827호(2020.6.19)' },
