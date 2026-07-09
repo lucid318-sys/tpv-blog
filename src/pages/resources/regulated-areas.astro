@@ -619,7 +619,7 @@ for (const n of officialNotices) {
 
     const matches = clientPeriods
       .filter(p => p.sido.includes(q) || p.region.includes(q) || (p.scope || '').includes(q))
-      .sort((a, b) => typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || a.designated.localeCompare(b.designated));
+      .sort((a, b) => typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || b.designated.localeCompare(a.designated));
 
     if (matches.length === 0) {
       resultsEl.innerHTML = '';
