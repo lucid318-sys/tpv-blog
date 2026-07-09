@@ -10,12 +10,14 @@ import {
 
 // ── 타임라인 그룹핑 (speculation 제외) ──
 const events = toTimelineEvents(regulationPeriods.filter(p => p.type !== 'speculation'));
+interface MatchedNotice { id: string; file?: string }
 interface TimelineGroup {
   date: string;
   kind: '지정' | '해제';
   type: RegulationType;
   typeLabel: string;
   regions: { sido: string; region: string; scope?: string }[];
+  notices: MatchedNotice[];
 }
 const groupMap = new Map<string, TimelineGroup>();
 for (const ev of events) {
@@ -27,10 +29,46 @@ for (const ev of events) {
       type: ev.type,
       typeLabel: REGULATION_TYPE_LABEL[ev.type],
       regions: [],
+      notices: [],
     });
   }
   groupMap.get(key)!.regions.push({ sido: ev.sido, region: ev.region, scope: ev.scope });
 }
+
+// 그룹별 공고 매칭: 원본 레코드에서 notice 문자열 수집 → 공고번호 추출 → officialNotices 매칭
+const noticeIdRegex = /제(\d+-\d+)호/g;
+const noticeById = new Map(officialNotices.map(n => [n.id, n]));
+
+for (const [key, group] of groupMap) {
+  const noticeStrings = new Set<string>();
+  // 이 그룹에 해당하는 원본 레코드 찾기
+  const matchingPeriods = regulationPeriods.filter(p =>
+    p.type === group.type && p.type !== 'speculation' &&
+    ((group.kind === '지정' && p.designated === group.date) ||
+     (group.kind === '해제' && p.lifted === group.date))
+  );
+  for (const p of matchingPeriods) {
+    const noticeField = group.kind === '지정' ? p.designationNotice : p.liftNotice;
+    if (noticeField) noticeStrings.add(noticeField);
+  }
+
+  // 공고번호 추출 + officialNotices 매칭
+  const seenIds = new Set<string>();
+  for (const str of noticeStrings) {
+    let match;
+    const re = new RegExp(noticeIdRegex.source, 'g');
+    while ((match = re.exec(str)) !== null) {
+      const num = match[1]; // e.g. "2026-882"
+      for (const [id, notice] of noticeById) {
+        if (id.includes(num) && !seenIds.has(id)) {
+          seenIds.add(id);
+          group.notices.push({ id, file: notice.file });
+        }
+      }
+    }
+  }
+}
+
 const timelineGroups = [...groupMap.values()];
 
 // 시도별로 묶어 요약 텍스트 생성
@@ -146,6 +184,21 @@ for (const n of officialNotices) {
                     <button class="tl-expand-regions" data-action="expand-regions">+ {summary.length - 3}개 시도 더보기</button>
                   )}
                 </div>
+                {g.notices.length > 0 && (
+                  <div class="tl-notices">
+                    {g.notices.map((n) => {
+                      const ext = n.file ? n.file.split('.').pop()?.toUpperCase() : null;
+                      return n.file ? (
+                        <a href={n.file} target="_blank" rel="noopener" class="tl-notice-link" download>
+                          {n.id}
+                          {ext && <span class={`notice-ext ext-${ext.toLowerCase()}`}>{ext}</span>}
+                        </a>
+                      ) : (
+                        <span class="tl-notice-text">{n.id}</span>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -335,6 +388,17 @@ for (const n of officialNotices) {
     background: none; border: none; font-size: 0.75rem; color: var(--terracotta);
     cursor: pointer; padding: 0.25rem 0; font-family: 'Pretendard', sans-serif; font-weight: 600;
   }
+  .tl-notices {
+    margin-top: 0.5rem; padding-top: 0.4rem; border-top: 1px solid #eae4d8;
+    display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center;
+    font-size: 0.7rem;
+  }
+  .tl-notice-link {
+    color: var(--terracotta); font-weight: 600;
+    display: inline-flex; align-items: center; gap: 0.25rem;
+  }
+  .tl-notice-link:hover { text-decoration: underline; }
+  .tl-notice-text { color: #999; }
   .btn-more {
     display: block;
     width: 100%;
