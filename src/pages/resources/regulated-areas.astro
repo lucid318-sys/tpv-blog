@@ -1,97 +1,242 @@
 ---
 import Base from "../../layouts/Base.astro";
+import { ADJUSTED_AREAS, SPECULATION_AREAS, REFERENCE_DATE } from "../../data/regulatedAreas";
 import {
-  ADJUSTED_AREAS, SPECULATION_AREAS, AREA_HISTORY,
-  DOWNLOAD_FILES, REFERENCE_DATE,
-} from "../../data/regulatedAreas";
+  regulationPeriods, officialNotices, toTimelineEvents,
+  REGULATION_TYPE_LABEL, HISTORY_BASE_DATE, SPECULATION_BASE_DATE,
+  LEGAL_NOTES,
+  type RegulationEvent, type RegulationType,
+} from "../../data/regulatedAreaHistory";
+
+// ── 타임라인 그룹핑 (speculation 제외) ──
+const events = toTimelineEvents(regulationPeriods.filter(p => p.type !== 'speculation'));
+interface TimelineGroup {
+  date: string;
+  kind: '지정' | '해제';
+  type: RegulationType;
+  typeLabel: string;
+  regions: { sido: string; region: string; scope?: string }[];
+}
+const groupMap = new Map<string, TimelineGroup>();
+for (const ev of events) {
+  const key = `${ev.date}|${ev.type}|${ev.kind}`;
+  if (!groupMap.has(key)) {
+    groupMap.set(key, {
+      date: ev.date,
+      kind: ev.kind,
+      type: ev.type,
+      typeLabel: REGULATION_TYPE_LABEL[ev.type],
+      regions: [],
+    });
+  }
+  groupMap.get(key)!.regions.push({ sido: ev.sido, region: ev.region, scope: ev.scope });
+}
+const timelineGroups = [...groupMap.values()];
+
+// 시도별로 묶어 요약 텍스트 생성
+function summarizeRegions(regions: { sido: string; region: string; scope?: string }[]): { sido: string; names: string }[] {
+  const byDo = new Map<string, string[]>();
+  for (const r of regions) {
+    if (!byDo.has(r.sido)) byDo.set(r.sido, []);
+    byDo.get(r.sido)!.push(r.region + (r.scope ? `(${r.scope})` : ''));
+  }
+  return [...byDo.entries()].map(([sido, names]) => ({ sido, names: names.join(', ') }));
+}
+
+// 공고 날짜 내림차순
+const sortedNotices = [...officialNotices].sort((a, b) => b.date.localeCompare(a.date));
+
+// 기준일 포맷
+function fmtDate(d: string) { return d.replace(/-/g, '.'); }
+
+// 클라이언트에 전달할 데이터 (인라인 JSON)
+const clientPeriods = regulationPeriods.map(p => ({
+  type: p.type, sido: p.sido, region: p.region,
+  scope: p.scope, target: p.target,
+  designated: p.designated, lifted: p.lifted,
+  redesignation: p.redesignation, note: p.note,
+  designationNotice: p.designationNotice, liftNotice: p.liftNotice,
+  needsVerify: p.needsVerify,
+}));
+const clientNoticeMap: Record<string, { file?: string }> = {};
+for (const n of officialNotices) {
+  // 공고 ID에서 짧은 키 추출 (예: "제2025-1223호")
+  clientNoticeMap[n.id] = { file: n.file };
+}
 ---
 <Base title="규제지역 지정현황">
-  <main class="main">
-    <div class="header">
-      <h1 class="page-title">규제지역 지정현황</h1>
-      <span class="date-badge">{REFERENCE_DATE} 기준</span>
-    </div>
-
-    <section class="section">
-      <h2 class="section-title">조정대상지역</h2>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>지역</th><th>구·시</th></tr></thead>
-          <tbody>
-            {ADJUSTED_AREAS.map((g) => (
-              <tr>
-                <td class="region">{g.region}</td>
-                <td>{g.areas.join(", ")}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+  <main class="layout">
+    <div class="content">
+      <div class="header">
+        <h1 class="page-title">규제지역 지정현황</h1>
+        <span class="date-badge">{REFERENCE_DATE} 기준</span>
       </div>
-    </section>
 
-    <section class="section">
-      <h2 class="section-title">투기과열지구</h2>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>지역</th><th>구·시</th></tr></thead>
-          <tbody>
-            {SPECULATION_AREAS.map((g) => (
-              <tr>
-                <td class="region">{g.region}</td>
-                <td>{g.areas.join(", ")}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2 class="section-title">지정 연혁</h2>
-      {AREA_HISTORY.map((h) => (
-        <div class="history-card">
-          <span class="history-date">{h.date}</span>
-          <p class="history-desc">{h.description}</p>
-          {h.notes && h.notes.map((n) => (
-            <p class="history-note">{n}</p>
-          ))}
+      {/* ① 현재 지정현황 표 */}
+      <section class="section">
+        <h2 class="section-title">조정대상지역</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>지역</th><th>구 · 시</th></tr></thead>
+            <tbody>
+              {ADJUSTED_AREAS.map((g) => (
+                <tr>
+                  <td class="region">{g.region}</td>
+                  <td>{g.areas.join(", ")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      ))}
-    </section>
+      </section>
 
-    <section class="section">
-      <h2 class="section-title">원본 자료 다운로드</h2>
-      <div class="downloads">
-        {DOWNLOAD_FILES.map((f) => (
-          <a href={`/files/${f.filename}`} target="_blank" rel="noopener" class="dl-item" download>
-            <div class="dl-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="12" y1="18" x2="12" y2="12"/>
-                <polyline points="9 15 12 18 15 15"/>
-              </svg>
-            </div>
-            <div class="dl-info">
-              <p class="dl-label">{f.label}</p>
-              <p class="dl-type">PDF</p>
-            </div>
-          </a>
-        ))}
+      <section class="section">
+        <h2 class="section-title">투기과열지구</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>지역</th><th>구 · 시</th></tr></thead>
+            <tbody>
+              {SPECULATION_AREAS.map((g) => (
+                <tr>
+                  <td class="region">{g.region}</td>
+                  <td>{g.areas.join(", ")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ② 지정·해제 연혁 타임라인 */}
+      <section class="section">
+        <h2 class="section-title">지정 · 해제 연혁</h2>
+        <div id="timeline">
+          {timelineGroups.map((g, i) => {
+            const summary = summarizeRegions(g.regions);
+            const isDesignation = g.kind === '지정';
+            return (
+              <div
+                class={`tl-card ${isDesignation ? 'tl-designation' : 'tl-lift'} ${i >= 5 ? 'tl-hidden' : ''}`}
+                data-tl-idx={i}
+              >
+                <div class="tl-header">
+                  <span class="tl-date">{fmtDate(g.date)}</span>
+                  <span class={`tl-kind ${isDesignation ? 'kind-designation' : 'kind-lift'}`}>{g.kind}</span>
+                  <span class="tl-type">{g.typeLabel}</span>
+                  <span class="tl-count">{g.regions.length}곳</span>
+                </div>
+                <div class="tl-regions">
+                  {summary.map((s, si) => (
+                    <p class={`tl-region-line ${si >= 3 ? 'tl-region-hidden' : ''}`}>
+                      <strong>{s.sido}</strong> {s.names}
+                    </p>
+                  ))}
+                  {summary.length > 3 && (
+                    <button class="tl-expand-regions" data-action="expand-regions">+ {summary.length - 3}개 시도 더보기</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {timelineGroups.length > 5 && (
+          <button class="btn-more" id="btn-timeline-more">
+            전체 연혁 보기 ({timelineGroups.length}건)
+          </button>
+        )}
+      </section>
+
+      {/* ③ 지역별 조회 */}
+      <section class="section">
+        <h2 class="section-title">지역별 조회</h2>
+        <div class="region-search-wrap">
+          <input type="text" id="region-search" class="region-search" placeholder="지역명 입력 (예: 강남, 화성, 세종)" />
+        </div>
+        <div id="region-results"></div>
+        <p id="region-initial" class="region-initial">지역명을 입력하면 규제지역 지정·해제 이력을 조회합니다.</p>
+        <p id="region-empty" class="region-empty" style="display:none;">검색 결과가 없습니다.</p>
+      </section>
+
+      {/* ④ 원본 공고 다운로드 */}
+      <section class="section">
+        <h2 class="section-title">원본 공고 다운로드</h2>
+        <div class="notice-list">
+          {sortedNotices.map((n) => {
+            const ext = n.file ? n.file.split('.').pop()?.toUpperCase() : null;
+            return (
+              <div class="notice-item">
+                <div class="notice-meta">
+                  <span class={`notice-kind nk-${n.kind === '지정' ? 'des' : n.kind === '해제' ? 'lift' : n.kind === '정정' ? 'fix' : 'both'}`}>{n.kind}</span>
+                  <span class="notice-date">{fmtDate(n.date)}</span>
+                  {ext && <span class={`notice-ext ext-${ext.toLowerCase()}`}>{ext}</span>}
+                </div>
+                <p class="notice-id">
+                  {n.file ? (
+                    <a href={n.file} target="_blank" rel="noopener" download>{n.id}</a>
+                  ) : (
+                    <span class="notice-unavailable">{n.id} <small>(미확보)</small></span>
+                  )}
+                </p>
+                <p class="notice-summary">{n.summary}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ⑤ 고지문구 */}
+      <div class="legal-box">
+        <p class="legal-basis">
+          조정대상지역 · 투기과열지구: {fmtDate(HISTORY_BASE_DATE)} 기준 / 투기지역: {fmtDate(SPECULATION_BASE_DATE)} 기준
+        </p>
+        <p class="legal-source">출처: 국토교통부 공고 · etaxkorea 조세자료 정리</p>
+        <ul class="legal-notes">
+          {LEGAL_NOTES.map((note) => (
+            <li>{note}</li>
+          ))}
+        </ul>
+        <p class="legal-warn">본 자료는 참고용이며, 세무 판단 시 반드시 원문 공고를 확인하시기 바랍니다.</p>
       </div>
-    </section>
 
-    <div class="back-wrap">
-      <a href="/resources/" class="back">&larr; 서식·자료로 돌아가기</a>
+      <div class="back-wrap">
+        <a href="/resources/" class="back">&larr; 서식 · 자료로 돌아가기</a>
+      </div>
     </div>
+
+    <aside class="sidebar">
+      <form class="sidebar-search" action="/search/" method="get">
+        <p class="sidebar-title">키워드로 찾기</p>
+        <div class="search-input-wrap">
+          <input type="text" name="q" placeholder="검색어 입력" class="search-input" />
+          <button type="submit" class="search-btn" aria-label="검색">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+        </div>
+      </form>
+
+      <div class="sidebar-cta">
+        <p class="cta-label">상담이 필요하세요?</p>
+        <a href="https://pf.kakao.com/_dcihX/chat" target="_blank" rel="noopener" class="cta-btn">
+          카카오톡 상담
+        </a>
+      </div>
+    </aside>
   </main>
 </Base>
 
 <style>
-  .main {
-    max-width: 720px;
+  /* ── Layout ── */
+  .layout {
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
+    padding: 2rem 1.5rem 0;
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  .content {
+    flex: 1;
+    min-width: 0;
   }
   .header {
     display: flex;
@@ -114,9 +259,7 @@ import {
     border-radius: 20px;
   }
 
-  .section {
-    margin-bottom: 2.5rem;
-  }
+  .section { margin-bottom: 2.5rem; }
   .section-title {
     font-family: 'SUIT Variable', 'Pretendard', sans-serif;
     font-size: 1.15rem;
@@ -126,18 +269,15 @@ import {
     border-bottom: 2px solid var(--dark-brown);
   }
 
-  /* Table */
+  /* ── Table (현재 지정현황) ── */
   .table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 8px;
     border: 1px solid #e8e2d6;
+    max-width: 100%;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
   th {
     background: var(--dark-brown);
     color: var(--cream);
@@ -146,91 +286,420 @@ import {
     text-align: left;
     white-space: nowrap;
   }
-  td {
-    padding: 0.7rem 1rem;
-    border-top: 1px solid #e8e2d6;
-    line-height: 1.7;
-  }
-  tr:nth-child(even) td {
-    background: #faf7f1;
-  }
-  .region {
-    white-space: nowrap;
-    font-weight: 700;
-  }
+  td { padding: 0.7rem 1rem; border-top: 1px solid #e8e2d6; line-height: 1.7; }
+  tr:nth-child(even) td { background: #faf7f1; }
+  .region { white-space: nowrap; font-weight: 700; }
 
-  /* History */
-  .history-card {
-    background: #fff;
-    border: 1px solid #eae4d8;
-    border-radius: 10px;
-    padding: 1.25rem;
-    margin-bottom: 0.75rem;
-  }
-  .history-date {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--terracotta);
-  }
-  .history-desc {
-    font-size: 0.9rem;
-    margin-top: 0.35rem;
-    font-weight: 600;
-  }
-  .history-note {
-    font-size: 0.8rem;
-    color: #777;
-    margin-top: 0.25rem;
-  }
-
-  /* Downloads */
-  .downloads {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .dl-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+  /* ── 타임라인 ── */
+  .tl-card {
     background: #fff;
     border: 1px solid #eae4d8;
     border-radius: 10px;
     padding: 1rem 1.25rem;
+    margin-bottom: 0.6rem;
+    cursor: pointer;
     transition: box-shadow 0.15s;
   }
-  .dl-item:hover {
-    box-shadow: 0 2px 12px rgba(44,33,23,0.08);
-  }
-  .dl-icon {
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    background: var(--terracotta);
-    color: #fff;
-    border-radius: 8px;
+  .tl-card:hover { box-shadow: 0 2px 12px rgba(44,33,23,0.08); }
+  .tl-designation { border-left: 4px solid #7B3B3B; }
+  .tl-lift { border-left: 4px solid #64748B; }
+  .tl-hidden { display: none; }
+  .tl-header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
   }
-  .dl-label {
+  .tl-date { font-size: 0.8rem; font-weight: 700; color: var(--dark-brown); }
+  .tl-kind {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+  }
+  .kind-designation { background: #F1E3E3; color: #7B3B3B; }
+  .kind-lift { background: #F1F5F9; color: #64748B; }
+  .tl-type { font-size: 0.75rem; color: #777; }
+  .tl-count { font-size: 0.7rem; color: #999; margin-left: auto; }
+  .tl-regions { font-size: 0.8rem; line-height: 1.6; color: #555; }
+  .tl-region-line { margin: 0; }
+  .tl-region-line strong { color: var(--dark-brown); }
+  .tl-region-hidden { display: none; }
+  .tl-expand-regions {
+    background: none; border: none; font-size: 0.75rem; color: var(--terracotta);
+    cursor: pointer; padding: 0.25rem 0; font-family: 'Pretendard', sans-serif; font-weight: 600;
+  }
+  .btn-more {
+    display: block;
+    width: 100%;
+    padding: 0.7rem;
+    background: #fff;
+    border: 1.5px solid #eae4d8;
+    border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 600;
-    line-height: 1.4;
+    color: var(--dark-brown);
+    cursor: pointer;
+    font-family: 'Pretendard', sans-serif;
+    transition: background 0.15s;
   }
-  .dl-type {
-    font-size: 0.7rem;
-    color: #999;
-    margin-top: 0.15rem;
+  .btn-more:hover { background: #faf7f1; }
+
+  /* ── 지역별 조회 ── */
+  .region-search-wrap { margin-bottom: 1rem; }
+  .region-search {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-family: 'Pretendard', sans-serif;
+    border: 1.5px solid #ddd6c9;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--dark-brown);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .region-search:focus { border-color: var(--terracotta); }
+  .region-initial, .region-empty {
+    text-align: center; color: #999; padding: 1.5rem 0; font-size: 0.85rem;
   }
 
-  .back-wrap {
-    margin-top: 2rem;
+  /* ── 공고 목록 ── */
+  .notice-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .notice-item {
+    background: #fff;
+    border: 1px solid #eae4d8;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+  .notice-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+  .notice-kind {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+  }
+  .nk-des { background: #F1E3E3; color: #7B3B3B; }
+  .nk-lift { background: #F1F5F9; color: #64748B; }
+  .nk-fix { background: #FFF7ED; color: #92400E; }
+  .nk-both { background: #F0FDF4; color: #166534; }
+  .notice-date { font-size: 0.75rem; color: #777; }
+  .notice-ext {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.05rem 0.35rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .ext-pdf { background: #FEE2E2; color: #991B1B; }
+  .ext-hwp { background: #DBEAFE; color: #1E40AF; }
+  .notice-id { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .notice-id a { color: var(--terracotta); }
+  .notice-id a:hover { text-decoration: underline; }
+  .notice-unavailable { color: #999; }
+  .notice-summary { font-size: 0.8rem; color: #555; line-height: 1.6; }
+
+  /* ── 고지문구 ── */
+  .legal-box {
+    background: #faf7f1;
+    border: 1px solid #eae4d8;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.75rem;
+    color: #777;
+    line-height: 1.7;
+  }
+  .legal-basis { font-weight: 700; color: var(--dark-brown); margin-bottom: 0.25rem; }
+  .legal-source { margin-bottom: 0.75rem; }
+  .legal-notes { margin: 0 0 0.75rem 1.25rem; }
+  .legal-notes li { margin-bottom: 0.3rem; }
+  .legal-warn {
+    font-weight: 700;
+    color: #7B3B3B;
+    padding: 0.5rem 0.75rem;
+    background: #F1E3E3;
+    border-radius: 6px;
+    font-size: 0.8rem;
+  }
+
+  /* ── Back ── */
+  .back-wrap { margin-top: 2rem; margin-bottom: 3rem; text-align: center; }
+  .back { font-size: 0.9rem; font-weight: 600; color: var(--terracotta); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+  }
+  .sidebar-search {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #eae4d8;
+    padding: 1.25rem;
+  }
+  .sidebar-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--terracotta);
+    margin-bottom: 0.75rem;
+  }
+  .search-input-wrap { display: flex; gap: 0; }
+  .search-input {
+    flex: 1; min-width: 0;
+    border: 1.5px solid #ddd6c9; border-right: none;
+    border-radius: 8px 0 0 8px;
+    padding: 0.5rem 0.65rem; font-size: 0.8rem;
+    font-family: 'Pretendard', sans-serif;
+    background: #faf7f2; color: var(--dark-brown); outline: none;
+  }
+  .search-input:focus { border-color: var(--terracotta); }
+  .search-btn {
+    background: var(--dark-brown); border: none;
+    border-radius: 0 8px 8px 0;
+    padding: 0 0.6rem; color: var(--cream);
+    cursor: pointer; display: flex; align-items: center;
+  }
+  .sidebar-cta {
+    background: var(--dark-brown);
+    border-radius: 12px;
+    padding: 1.5rem 1.25rem;
     text-align: center;
   }
-  .back {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--terracotta);
+  .cta-label {
+    font-family: 'SUIT Variable', 'Pretendard', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    color: var(--cream); margin-bottom: 0.75rem;
+  }
+  .cta-btn {
+    display: inline-block;
+    background: var(--terracotta); color: #fff;
+    font-weight: 700; font-size: 0.85rem;
+    padding: 0.55rem 1.25rem; border-radius: 8px;
+    transition: opacity 0.2s;
+  }
+  .cta-btn:hover { opacity: 0.85; }
+
+  /* ── Mobile ── */
+  @media (max-width: 1024px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      width: 100%; position: static;
+      flex-direction: row; flex-wrap: wrap;
+    }
+    .sidebar-search, .sidebar-cta { flex: 1; min-width: 240px; }
+  }
+  @media (max-width: 640px) {
+    .sidebar { flex-direction: column; }
+    .sidebar-search, .sidebar-cta { min-width: auto; }
+    .tl-header { gap: 0.35rem; }
   }
 </style>
+
+<style is:global>
+  /* 지역별 조회 결과 (JS로 생성) */
+  .rr-section { margin-bottom: 1.25rem; }
+  .rr-section-title {
+    font-size: 0.85rem; font-weight: 700; color: var(--dark-brown);
+    margin-bottom: 0.5rem; padding-bottom: 0.35rem;
+    border-bottom: 1.5px solid #eae4d8;
+  }
+  .rr-row {
+    background: #fff; border: 1px solid #eae4d8; border-radius: 8px;
+    padding: 0.75rem 1rem; margin-bottom: 0.4rem;
+    font-size: 0.8rem; line-height: 1.6;
+  }
+  .rr-period { font-weight: 600; color: var(--dark-brown); }
+  .rr-scope { font-size: 0.75rem; color: #999; margin-left: 0.5rem; }
+  .rr-badges { display: inline-flex; gap: 0.3rem; margin-left: 0.5rem; vertical-align: middle; }
+  .rr-badge {
+    font-size: 0.6rem; font-weight: 700; padding: 0.05rem 0.35rem;
+    border-radius: 3px; vertical-align: middle;
+  }
+  .rr-active { background: #7B3B3B; color: #fff; }
+  .rr-redesignation { background: transparent; border: 1px solid #7B3B3B; color: #7B3B3B; }
+  .rr-verify { background: #FFF7ED; color: #92400E; }
+  .rr-target { background: #F1F5F9; color: #64748B; }
+  .rr-notice { font-size: 0.7rem; color: #999; margin-top: 0.2rem; }
+  .rr-notice a { color: var(--terracotta); }
+  .rr-note { font-size: 0.7rem; color: #999; margin-top: 0.15rem; }
+  .rr-old-toggle {
+    display: block; width: 100%;
+    background: #faf7f1; border: 1px dashed #ddd6c9;
+    border-radius: 8px; padding: 0.6rem; margin-bottom: 0.5rem;
+    font-size: 0.8rem; font-weight: 600; color: #777;
+    cursor: pointer; font-family: 'Pretendard', sans-serif; text-align: center;
+  }
+  .rr-old-toggle:hover { background: #f0ebe3; }
+  .rr-old-hidden { display: none; }
+</style>
+
+<script define:vars={{ clientPeriods, clientNoticeMap, REGULATION_TYPE_LABEL }}>
+  // ── 타임라인 인터랙션 ──
+  const btnMore = document.getElementById('btn-timeline-more');
+  if (btnMore) {
+    btnMore.addEventListener('click', () => {
+      document.querySelectorAll('.tl-hidden').forEach(el => el.classList.remove('tl-hidden'));
+      btnMore.style.display = 'none';
+    });
+  }
+
+  // 카드 클릭 → 숨겨진 지역 펼침
+  document.querySelectorAll('.tl-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.tl-expand-regions')) return;
+      card.querySelectorAll('.tl-region-hidden').forEach(el => el.classList.remove('tl-region-hidden'));
+      const btn = card.querySelector('.tl-expand-regions');
+      if (btn) btn.style.display = 'none';
+    });
+  });
+  document.querySelectorAll('.tl-expand-regions').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const card = btn.closest('.tl-card');
+      card.querySelectorAll('.tl-region-hidden').forEach(el => el.classList.remove('tl-region-hidden'));
+      btn.style.display = 'none';
+    });
+  });
+
+  // ── 지역별 조회 ──
+  const typeOrder = ['adjustment', 'overheated', 'speculation'];
+  const input = document.getElementById('region-search');
+  const resultsEl = document.getElementById('region-results');
+  const initialEl = document.getElementById('region-initial');
+  const emptyEl = document.getElementById('region-empty');
+
+  function search(query) {
+    const q = query.trim();
+    if (!q) {
+      resultsEl.innerHTML = '';
+      emptyEl.style.display = 'none';
+      initialEl.style.display = '';
+      return;
+    }
+    initialEl.style.display = 'none';
+
+    const matches = clientPeriods
+      .filter(p => p.sido.includes(q) || p.region.includes(q) || (p.scope || '').includes(q))
+      .sort((a, b) => typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || a.designated.localeCompare(b.designated));
+
+    if (matches.length === 0) {
+      resultsEl.innerHTML = '';
+      emptyEl.style.display = '';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    // 규제종류별 그룹
+    const groups = {};
+    for (const m of matches) {
+      if (!groups[m.type]) groups[m.type] = [];
+      groups[m.type].push(m);
+    }
+
+    let html = '';
+    for (const type of typeOrder) {
+      if (!groups[type]) continue;
+      const items = groups[type];
+      const label = REGULATION_TYPE_LABEL[type];
+
+      // 구(舊) 투기지역 분리
+      let mainItems = items;
+      let oldItems = [];
+      if (type === 'speculation') {
+        mainItems = items.filter(p => p.designated >= '2013-01-01');
+        oldItems = items.filter(p => p.designated < '2013-01-01');
+      }
+
+      html += `<div class="rr-section"><p class="rr-section-title">${label}</p>`;
+      html += renderRows(mainItems);
+
+      if (oldItems.length > 0) {
+        html += `<button class="rr-old-toggle" data-toggle="old-speculation">구(舊) 투기지역 이력 보기 (2003~2012 · ${oldItems.length}건)</button>`;
+        html += `<div class="rr-old-hidden" id="old-speculation-rows">`;
+        html += renderRows(oldItems);
+        html += `</div>`;
+      }
+
+      html += `</div>`;
+    }
+
+    resultsEl.innerHTML = html;
+
+    // 구(舊) 투기지역 토글
+    const toggleBtn = resultsEl.querySelector('.rr-old-toggle');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        const rows = document.getElementById('old-speculation-rows');
+        if (rows.classList.contains('rr-old-hidden')) {
+          rows.classList.remove('rr-old-hidden');
+          toggleBtn.textContent = '구(舊) 투기지역 이력 접기';
+        } else {
+          rows.classList.add('rr-old-hidden');
+          toggleBtn.textContent = `구(舊) 투기지역 이력 보기 (2003~2012 · ${rows.querySelectorAll('.rr-row').length}건)`;
+        }
+      });
+    }
+  }
+
+  function renderRows(items) {
+    return items.map(p => {
+      const period = fmtD(p.designated) + ' ~ ' + (p.lifted ? fmtD(p.lifted) : '현재');
+      let badges = '';
+      if (!p.lifted) badges += '<span class="rr-badge rr-active">현재 지정 중</span>';
+      if (p.redesignation) badges += '<span class="rr-badge rr-redesignation">재지정</span>';
+      if (p.needsVerify) badges += '<span class="rr-badge rr-verify">원문 확인 필요</span>';
+      if (p.target) badges += `<span class="rr-badge rr-target">${p.target}</span>`;
+
+      let noticeHtml = '';
+      if (p.designationNotice) noticeHtml += renderNoticeLink('지정', p.designationNotice);
+      if (p.liftNotice) noticeHtml += renderNoticeLink('해제', p.liftNotice);
+
+      return `<div class="rr-row">
+        <span class="rr-period">${period}</span>
+        ${p.scope ? `<span class="rr-scope">${p.scope}</span>` : ''}
+        ${badges ? `<span class="rr-badges">${badges}</span>` : ''}
+        ${noticeHtml ? `<p class="rr-notice">${noticeHtml}</p>` : ''}
+        ${p.note ? `<p class="rr-note">${p.note}</p>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  function renderNoticeLink(label, noticeText) {
+    // noticeText: "국토교통부공고 제2025-1223호(2025.10.16)" 형태
+    // clientNoticeMap 키와 매칭
+    for (const [id, info] of Object.entries(clientNoticeMap)) {
+      if (noticeText.includes(id.replace('국토교통부공고 ', ''))) {
+        if (info.file) {
+          const ext = info.file.split('.').pop().toUpperCase();
+          return `${label}: <a href="${info.file}" target="_blank" rel="noopener" download>${noticeText}</a> <span class="rr-badge" style="font-size:0.55rem">${ext}</span> `;
+        }
+      }
+    }
+    return `${label}: ${noticeText} `;
+  }
+
+  function fmtD(d) { return d.replace(/-/g, '.'); }
+
+  input.addEventListener('input', (e) => search(e.target.value));
+
+  // URL 쿼리로 초기 검색
+  const params = new URLSearchParams(window.location.search);
+  const initQ = params.get('q');
+  if (initQ) {
+    input.value = initQ;
+    search(initQ);
+  }
+</script>
