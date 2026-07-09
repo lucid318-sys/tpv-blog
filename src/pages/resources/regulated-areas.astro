@@ -553,6 +553,7 @@ for (const n of officialNotices) {
 </style>
 
 <script define:vars={{ clientPeriods, clientNoticeMap, REGULATION_TYPE_LABEL }}>
+document.addEventListener('DOMContentLoaded', () => {
   // ── 토글 헬퍼 ──
   function setupToggle(btnId, itemSelector, hiddenClass, limit, sectionId) {
     const btn = document.getElementById(btnId);
@@ -605,6 +606,7 @@ for (const n of officialNotices) {
   // ── 지역별 조회 ──
   const typeOrder = ['adjustment', 'overheated', 'speculation'];
   const input = document.getElementById('region-search');
+  if (!input) return;
   const resultsEl = document.getElementById('region-results');
   const initialEl = document.getElementById('region-initial');
   const emptyEl = document.getElementById('region-empty');
@@ -730,4 +732,5 @@ for (const n of officialNotices) {
     input.value = initQ;
     search(initQ);
   }
+}); // DOMContentLoaded
 </script>
