@@ -328,34 +328,36 @@ const areaDataJson = JSON.stringify(areaList);
   .reg-pills {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem;
     justify-content: center;
     margin-top: 0.75rem;
     min-height: 0;
   }
-  .reg-pill {
+  /* JS로 동적 생성되는 알약 — :global() 필수 */
+  .reg-pills :global(.reg-pill) {
     display: inline-block;
-    padding: 0.35rem 0.9rem;
+    padding: 0.3rem 0.75rem;
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
     transition: background 0.15s;
     text-decoration: none;
+    border: 1.5px solid #7B3B3B;
+    color: #7B3B3B;
+    background: transparent;
   }
-  .reg-pill.active-area {
+  .reg-pills :global(.reg-pill:hover) {
+    background: #F1E3E3;
+  }
+  .reg-pills :global(.reg-pill.active-area) {
     background: #7B3B3B;
     color: #fff;
+    border-color: #7B3B3B;
   }
-  .reg-pill.active-area:hover {
+  .reg-pills :global(.reg-pill.active-area:hover) {
     background: #5e2d2d;
-  }
-  .reg-pill.lifted-area {
-    background: #eae4d8;
-    color: var(--dark-brown);
-  }
-  .reg-pill.lifted-area:hover {
-    background: #ddd6c9;
+    border-color: #5e2d2d;
   }
   .reg-link {
     display: inline-block;
