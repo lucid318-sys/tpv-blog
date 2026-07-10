@@ -1,96 +1,507 @@
 ---
-import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
-import PostCard from "../components/PostCard.astro";
+import { regulationPeriods } from "../data/regulatedAreaHistory";
 
-const posts = (await getCollection("blog")).sort(
-  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
-);
+// 규제지역 위젯용 경량 데이터: sido+region 유니크 목록 + 현재 지정 여부
+const seen = new Set<string>();
+const areaList: { sido: string; region: string; active: boolean }[] = [];
+for (const p of regulationPeriods) {
+  const key = `${p.sido}|${p.region}`;
+  if (seen.has(key)) {
+    // 이미 있으면 active만 갱신 (하나라도 지정중이면 active)
+    if (!p.lifted) {
+      const existing = areaList.find(a => a.sido === p.sido && a.region === p.region);
+      if (existing) existing.active = true;
+    }
+    continue;
+  }
+  seen.add(key);
+  areaList.push({ sido: p.sido, region: p.region, active: !p.lifted });
+}
+const areaDataJson = JSON.stringify(areaList);
 ---
 <Base title="" description="양도·증여·상속·취득세 전문 비대면 세무 상담. 세무사 허혜주 더프라이빗 세무회계.">
-  <main class="main">
-    <div class="filter" id="filter">
-      <button class="tab active" data-cat="all">전체</button>
-      <button class="tab" data-cat="chwideuk">취득세</button>
-      <button class="tab" data-cat="yangdo">양도세</button>
-      <button class="tab" data-cat="jeungyeo">증여세</button>
-      <button class="tab" data-cat="sangsok">상속세</button>
-      <button class="tab" data-cat="etc">기타</button>
-    </div>
-    <div class="list" id="list">
-      {posts.map((post) => (
-        <div data-category={post.data.category}>
-          <PostCard
-            slug={post.id}
-            title={post.data.title}
-            date={post.data.date}
-            category={post.data.category}
-            type={post.data.type}
-            summary={post.data.summary}
-          />
+  <!-- JSON-LD: LocalBusiness -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "더프라이빗 세무회계",
+    "alternateName": "더프라이빗택스",
+    "description": "양도소득세·증여세·상속세·취득세 전문 비대면 세무 상담",
+    "url": "https://theprivatetax.com",
+    "founder": { "@type": "Person", "name": "허혜주" }
+  })} />
+
+  <main>
+    <!-- ① 히어로 -->
+    <section class="hero">
+      <div class="hero-inner">
+        <h1>부동산 세금,{"\n"}혼자 고민하지 마세요</h1>
+        <p class="hero-sub">양도 · 증여 · 상속 · 취득세 전문 | 비대면 세무 상담</p>
+        <div class="hero-cta">
+          <a href="https://pf.kakao.com/_dcihX/chat" target="_blank" rel="noopener" class="btn btn-primary">카카오톡 상담하기</a>
+          <a href="/consult" class="btn btn-outline">상담 안내 보기</a>
         </div>
-      ))}
-    </div>
+      </div>
+    </section>
+
+    <!-- ② 규제지역 빠른 조회 -->
+    <section class="reg-widget">
+      <div class="reg-card">
+        <h2>우리 지역, 규제지역인가요?</h2>
+        <input type="text" id="reg-input" placeholder="시·군·구 이름을 입력하세요" autocomplete="off" />
+        <div id="reg-pills" class="reg-pills"></div>
+        <a href="/resources/regulated-areas" class="reg-link">전체 조회 &rarr;</a>
+      </div>
+    </section>
+
+    <!-- ③ 공감 섹션 -->
+    <section class="empathy">
+      <div class="section-inner">
+        <h2>이런 고민 있으신가요?</h2>
+        <div class="empathy-grid">
+          <div class="empathy-card">
+            <span class="empathy-icon" aria-hidden="true">&#x1F3E0;</span>
+            <p>집을 팔면 세금이 얼마나 나올까</p>
+          </div>
+          <div class="empathy-card">
+            <span class="empathy-icon" aria-hidden="true">&#x1F381;</span>
+            <p>자녀에게 증여, 어떻게 해야 유리할까</p>
+          </div>
+          <div class="empathy-card">
+            <span class="empathy-icon" aria-hidden="true">&#x1F4CB;</span>
+            <p>상속 신고 기한이 다가온다</p>
+          </div>
+          <div class="empathy-card">
+            <span class="empathy-icon" aria-hidden="true">&#x1F511;</span>
+            <p>부동산 사기 전, 취득세부터 확인</p>
+          </div>
+        </div>
+        <p class="empathy-closing">더프라이빗택스가 정리해 드립니다.</p>
+      </div>
+    </section>
+
+    <!-- ④ 전문 분야 -->
+    <section class="expertise">
+      <div class="section-inner">
+        <h2>전문 분야</h2>
+        <div class="expertise-grid">
+          <a href="/category/yangdo" class="expertise-card" style="--accent: #7B3B3B;">
+            <div class="expertise-bar"></div>
+            <strong>양도소득세</strong>
+            <p>팔기 전에 세금부터</p>
+          </a>
+          <a href="/category/jeungyeo" class="expertise-card" style="--accent: #D4622B;">
+            <div class="expertise-bar"></div>
+            <strong>증여세</strong>
+            <p>줄 때도 전략이 필요합니다</p>
+          </a>
+          <a href="/category/sangsok" class="expertise-card" style="--accent: #2C2117;">
+            <div class="expertise-bar"></div>
+            <strong>상속세</strong>
+            <p>남겨주는 마음, 지켜드립니다</p>
+          </a>
+          <a href="/category/chwideuk" class="expertise-card" style="--accent: #8B7E3B;">
+            <div class="expertise-bar"></div>
+            <strong>취득세</strong>
+            <p>사기 전에 확인하세요</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑤ 상담 상품 -->
+    <section class="consult-products">
+      <div class="section-inner">
+        <h2>상담 안내</h2>
+        <div class="product-grid">
+          <div class="product-card">
+            <div class="product-header">
+              <strong class="product-name">절세노트</strong>
+              <span class="product-price">88,000원</span>
+            </div>
+            <p class="product-desc">핵심만 짚어드리는 세금 요약 노트</p>
+            <ul class="product-list">
+              <li>간단한 세금 궁금증</li>
+              <li>예상 세액 + 절세 포인트 정리</li>
+            </ul>
+          </div>
+          <div class="product-card">
+            <div class="product-header">
+              <strong class="product-name">프라이빗 리포트</strong>
+              <span class="product-price">220,000원</span>
+            </div>
+            <p class="product-desc">케이스별 맞춤 분석 보고서</p>
+            <ul class="product-list">
+              <li>복잡한 양도·증여·상속 설계</li>
+              <li>시나리오 비교분석 + 실행 가이드</li>
+            </ul>
+          </div>
+        </div>
+        <p class="product-note">신고 대행은 별도 견적</p>
+        <div class="product-cta">
+          <a href="https://pf.kakao.com/_dcihX/chat" target="_blank" rel="noopener" class="btn btn-primary">카카오톡으로 상담 신청</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2차: 세무사 소개, 최근 글, 자료실, 하단 CTA 띠 -->
   </main>
 </Base>
 
 <style>
-  .main {
+  /* ── 공통 ── */
+  .section-inner {
     max-width: 720px;
     margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
+    padding: 0 1.5rem;
   }
-  .filter {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    overflow-x: auto;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .filter::-webkit-scrollbar {
-    display: none;
-  }
-  .tab {
-    background: transparent;
-    border: 1.5px solid var(--dark-brown);
+  h2 {
+    font-family: 'SUIT Variable', 'Pretendard', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
     color: var(--dark-brown);
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .btn {
+    display: inline-block;
+    padding: 0.85rem 1.8rem;
+    border-radius: 8px;
     font-family: 'Pretendard', sans-serif;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
+    text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    flex-shrink: 0;
+    transition: opacity 0.2s;
   }
-  .tab.active {
-    background: var(--dark-brown);
-    color: var(--cream);
+  .btn:hover { opacity: 0.85; }
+  .btn-primary {
+    background: #7B3B3B;
+    color: #fff;
+    border: none;
   }
-  .list {
+  .btn-outline {
+    background: transparent;
+    color: #7B3B3B;
+    border: 1.5px solid #7B3B3B;
+  }
+
+  /* ── ① 히어로 ── */
+  .hero {
+    background: var(--cream);
+    padding: 80px 1.5rem 100px;
+    text-align: center;
+  }
+  .hero-inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-family: 'SUIT Variable', 'Pretendard', sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    line-height: 1.35;
+    color: var(--dark-brown);
+    white-space: pre-line;
+    margin-bottom: 1rem;
+  }
+  .hero-sub {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 2rem;
+  }
+  .hero-cta {
     display: flex;
-    flex-direction: column;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ── ② 규제지역 위젯 ── */
+  .reg-widget {
+    position: relative;
+    z-index: 1;
+    padding: 0 1.5rem;
+  }
+  .reg-card {
+    max-width: 640px;
+    margin: -40px auto 0;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 2rem;
+    text-align: center;
+  }
+  .reg-card h2 {
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+  }
+  #reg-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid #ddd6c9;
+    border-radius: 8px;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #reg-input:focus {
+    border-color: #7B3B3B;
+  }
+  .reg-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 0.75rem;
+    min-height: 0;
+  }
+  .reg-pill {
+    display: inline-block;
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+  .reg-pill.active-area {
+    background: #7B3B3B;
+    color: #fff;
+  }
+  .reg-pill.active-area:hover {
+    background: #5e2d2d;
+  }
+  .reg-pill.lifted-area {
+    background: #eae4d8;
+    color: var(--dark-brown);
+  }
+  .reg-pill.lifted-area:hover {
+    background: #ddd6c9;
+  }
+  .reg-link {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: #7B3B3B;
+    font-weight: 600;
+  }
+
+  /* ── ③ 공감 ── */
+  .empathy {
+    background: #fff;
+    padding: 4rem 0;
+  }
+  .empathy-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
-  .list > div.hidden { display: none; }
+  .empathy-card {
+    background: #faf7f2;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .empathy-icon {
+    font-size: 1.6rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .empathy-card p {
+    font-size: 0.95rem;
+    color: var(--dark-brown);
+    line-height: 1.5;
+  }
+  .empathy-closing {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: #888;
+    font-weight: 500;
+  }
+
+  /* ── ④ 전문 분야 ── */
+  .expertise {
+    background: #eae4d8;
+    padding: 4rem 0;
+  }
+  .expertise-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .expertise-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: var(--dark-brown);
+    transition: box-shadow 0.2s;
+    overflow: hidden;
+    position: relative;
+  }
+  .expertise-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  .expertise-bar {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  .expertise-card strong {
+    display: block;
+    font-size: 1.05rem;
+    margin-bottom: 0.3rem;
+  }
+  .expertise-card p {
+    font-size: 0.85rem;
+    color: #777;
+  }
+
+  /* ── ⑤ 상담 상품 ── */
+  .consult-products {
+    background: #fff;
+    padding: 4rem 0;
+  }
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .product-card {
+    background: #faf7f2;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+  }
+  .product-name {
+    font-size: 1.1rem;
+  }
+  .product-price {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #7B3B3B;
+  }
+  .product-desc {
+    font-size: 0.85rem;
+    color: #777;
+    margin-bottom: 0.75rem;
+  }
+  .product-list {
+    list-style: none;
+    padding: 0;
+  }
+  .product-list li {
+    font-size: 0.85rem;
+    color: var(--dark-brown);
+    padding-left: 1rem;
+    position: relative;
+    line-height: 1.7;
+  }
+  .product-list li::before {
+    content: "\b7";
+    position: absolute;
+    left: 0;
+  }
+  .product-note {
+    text-align: center;
+    margin-top: 1.25rem;
+    font-size: 0.8rem;
+    color: #999;
+  }
+  .product-cta {
+    text-align: center;
+    margin-top: 1.5rem;
+  }
+
+  /* ── 반응형 ── */
+  @media (max-width: 640px) {
+    .hero {
+      padding: 48px 1.5rem 80px;
+    }
+    .hero h1 {
+      font-size: 1.6rem;
+    }
+    .hero-sub {
+      font-size: 0.9rem;
+    }
+    .hero-cta {
+      flex-direction: column;
+    }
+    .hero-cta .btn {
+      width: 100%;
+    }
+    .empathy-grid,
+    .expertise-grid,
+    .product-grid {
+      grid-template-columns: 1fr;
+    }
+    .product-header {
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
 </style>
 
-<script>
-  document.getElementById("filter")!.addEventListener("click", (e) => {
-    const btn = (e.target as HTMLElement).closest("button");
-    if (!btn) return;
-    const cat = btn.dataset.cat!;
-    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll("#list > div").forEach((el) => {
-      const div = el as HTMLElement;
-      if (cat === "all" || div.dataset.category === cat) {
-        div.classList.remove("hidden");
-      } else {
-        div.classList.add("hidden");
+<script define:vars={{ areaDataJson }}>
+  // 규제지역 빠른 조회 위젯
+  const areas = JSON.parse(areaDataJson);
+  const SIDO_ALIAS = {
+    '서울':'서울특별시','부산':'부산광역시','대구':'대구광역시','인천':'인천광역시',
+    '광주':'광주광역시','대전':'대전광역시','울산':'울산광역시','세종':'세종특별자치시',
+    '경기':'경기도','강원':'강원도','충북':'충청북도','충남':'충청남도',
+    '전북':'전라북도','전남':'전라남도','경북':'경상북도','경남':'경상남도',
+    '제주':'제주특별자치도',
+  };
+
+  const input = document.getElementById('reg-input');
+  const pillsContainer = document.getElementById('reg-pills');
+
+  input.addEventListener('input', () => {
+    const raw = input.value.trim();
+    pillsContainer.innerHTML = '';
+    if (!raw) return;
+
+    const queries = [raw];
+    if (SIDO_ALIAS[raw]) queries.push(SIDO_ALIAS[raw]);
+    // 역방향: 풀네임 → 축약형 매칭도 커버
+    for (const [short, full] of Object.entries(SIDO_ALIAS)) {
+      if (raw === full) queries.push(short);
+    }
+
+    const seen = new Set();
+    const matches = [];
+    for (const a of areas) {
+      const label = a.sido + ' ' + a.region;
+      if (seen.has(label)) continue;
+      const hit = queries.some(q => a.sido.includes(q) || a.region.includes(q));
+      if (hit) {
+        seen.add(label);
+        matches.push(a);
       }
-    });
+      if (matches.length >= 5) break;
+    }
+
+    // 현재 지정중인 지역 우선 정렬
+    matches.sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0));
+
+    for (const m of matches) {
+      const pill = document.createElement('a');
+      pill.className = 'reg-pill ' + (m.active ? 'active-area' : 'lifted-area');
+      pill.textContent = m.sido + ' ' + m.region;
+      pill.href = '/resources/regulated-areas/?q=' + encodeURIComponent(m.region);
+      pillsContainer.appendChild(pill);
+    }
   });
 </script>
