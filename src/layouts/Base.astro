@@ -4,15 +4,17 @@ import Footer from "../components/Footer.astro";
 
 interface Props {
   title: string;
+  description?: string;
 }
-const { title } = Astro.props;
+const { title, description } = Astro.props;
 ---
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{title} | 더프라이빗택스</title>
+  <title>{title ? `${title} | 더프라이빗택스` : '더프라이빗택스'}</title>
+  {description && <meta name="description" content={description} />}
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700&family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet" />

@@ -28,7 +28,7 @@ export async function getStaticPaths() {
 const { catSlug, label, posts } = Astro.props;
 const taxInfo = TAX_INFO[catSlug];
 ---
-<Base title={`${label} — 세금 이야기`}>
+<Base title={label}>
   <main class="layout">
     <div class="content">
       <h1 class="page-title">{label}</h1>

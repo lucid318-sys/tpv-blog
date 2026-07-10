@@ -7,7 +7,7 @@ const posts = (await getCollection("blog")).sort(
   (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
 );
 ---
-<Base title="블로그">
+<Base title="" description="양도·증여·상속·취득세 전문 비대면 세무 상담. 세무사 허혜주 더프라이빗 세무회계.">
   <main class="main">
     <div class="filter" id="filter">
       <button class="tab active" data-cat="all">전체</button>
