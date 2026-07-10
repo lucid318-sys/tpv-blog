@@ -146,7 +146,7 @@ for (const n of officialNotices) {
       </section>
 
       {/* ② 지역별 조회 */}
-      <section class="section">
+      <section class="section" id="region-search-section">
         <h2 class="section-title">지역별 조회</h2>
         <div class="region-search-wrap">
           <input type="text" id="region-search" class="region-search" placeholder="지역명 입력 (예: 강남, 화성, 세종)" />
@@ -907,6 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (initQ) {
     input.value = initQ;
     search(initQ);
+    document.getElementById('region-search-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }); // DOMContentLoaded
 </script>
