@@ -133,6 +133,17 @@ const taxInfo = TAX_INFO[post.data.category];
         </div>
       )}
 
+      {relatedPosts.length > 0 && (
+        <div class="sidebar-related">
+          <p class="sidebar-title">{catLabel} 글 더보기</p>
+          <ul>
+            {relatedPosts.map((rp: any) => (
+              <li><a href={`/blog/${rp.id}/`}>{rp.data.title}</a></li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div class="sidebar-cta">
         <p class="cta-label">상담이 필요하세요?</p>
         <a href="https://pf.kakao.com/_dcihX/chat" target="_blank" rel="noopener" class="cta-btn">
@@ -154,17 +165,6 @@ const taxInfo = TAX_INFO[post.data.category];
           카카오톡 상담하기
         </a>
       </div>
-      {relatedPosts.length > 0 && (
-        <div class="pf-related">
-          <hr class="pf-divider" />
-          <p class="pf-related-title">함께 보면 좋은 글</p>
-          <ul class="pf-related-list">
-            {relatedPosts.map((rp: any) => (
-              <li><a href={`/blog/${rp.id}/`}>→ {rp.data.title}</a></li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   </footer>
 
@@ -559,6 +559,35 @@ const taxInfo = TAX_INFO[post.data.category];
     color: #D4622B;
     margin-bottom: 0.75rem;
   }
+  .sidebar-related {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #eae4d8;
+    padding: 1.25rem;
+  }
+  .sidebar-related ul {
+    list-style: none;
+  }
+  .sidebar-related li {
+    border-top: 1px solid #f0ebe3;
+    padding: 0.6rem 0;
+  }
+  .sidebar-related li:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+  .sidebar-related li:last-child {
+    padding-bottom: 0;
+  }
+  .sidebar-related a {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    display: block;
+    transition: color 0.15s;
+  }
+  .sidebar-related a:hover {
+    color: #D4622B;
+  }
   .sidebar-cta {
     background: var(--dark-brown);
     border-radius: 12px;
@@ -629,34 +658,6 @@ const taxInfo = TAX_INFO[post.data.category];
     flex-shrink: 0;
   }
   .pf-cta-btn:hover { opacity: 0.85; }
-  .pf-divider {
-    border: none;
-    height: 1px;
-    background: rgba(245,240,232,0.1);
-    margin: 2rem 0 1.25rem;
-  }
-  .pf-related-title {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #8a7e6f;
-    margin-bottom: 0.6rem;
-    letter-spacing: 0.04em;
-  }
-  .pf-related-list {
-    list-style: none;
-    padding: 0;
-  }
-  .pf-related-list li {
-    margin-bottom: 0.4rem;
-  }
-  .pf-related-list a {
-    font-size: 0.85rem;
-    color: #b5a894;
-    transition: color 0.15s;
-  }
-  .pf-related-list a:hover {
-    color: #F5F0E8;
-  }
 
   /* ── Back ── */
   .back-area {
@@ -683,6 +684,7 @@ const taxInfo = TAX_INFO[post.data.category];
       flex-wrap: wrap;
     }
     .sidebar-taxinfo,
+    .sidebar-related,
     .sidebar-cta {
       flex: 1;
       min-width: 240px;
@@ -705,6 +707,7 @@ const taxInfo = TAX_INFO[post.data.category];
       flex-direction: column;
     }
     .sidebar-taxinfo,
+    .sidebar-related,
     .sidebar-cta {
       min-width: auto;
     }
