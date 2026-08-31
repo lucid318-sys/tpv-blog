@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(cd:*)",
+      "Bash(mkdir -p public/notices)",
+      "Bash(touch public/notices/.gitkeep)",
+      "Bash(mv \"\\(국토교통부공고 제2025-1223호\\) 조정대상지역 지정 공고.pdf\" 2025-1223.pdf)",
+      "Bash(mv \"\\(국토교통부공고 제2025-1225호\\) 투기과열지구 지정 공고.pdf\" 2025-1225.pdf)",
+      "Bash(mv \"\\(국토교통부공고_제2022-1407호\\)_투기과열지구_지정_해제.pdf\" 2022-1407.pdf)",
+      "Bash(mv \"\\(국토교통부공고_제2022-1408호\\)_조정대상지역_지정_해제.pdf\" 2022-1408.pdf)",
+      "Bash(mv \"170803_공고문\\(6\\).hwp\" 2017-1173.hwp)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(find /c/Users/user/Desktop/tpv-blog -type f \\\\\\(-name *.css -o -name *taxinfo* -o -name *regulat* \\\\\\))"
+    ]
+  }
+}
