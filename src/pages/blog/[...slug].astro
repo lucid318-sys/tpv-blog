@@ -288,6 +288,14 @@ const taxInfo = TAX_INFO[post.data.category];
     color: var(--dark-brown);
     font-weight: 700;
   }
+  .body :global(a) {
+    color: var(--terracotta);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .body :global(a:hover) {
+    opacity: 0.8;
+  }
 
   /* ── Table ── */
   .body :global(.table-wrap) {
