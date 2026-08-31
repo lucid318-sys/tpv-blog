@@ -1,7 +1,6 @@
 ---
 import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
-import CTA from "../../components/CTA.astro";
 import { TAX_INFO } from "../../data/taxinfo";
 
 const categoryLabels: Record<string, string> = {
@@ -10,6 +9,12 @@ const categoryLabels: Record<string, string> = {
   jeungyeo: "증여세",
   sangsok: "상속세",
   etc: "기타",
+};
+
+const typeLabels: Record<string, string> = {
+  column: "칼럼",
+  case: "사례",
+  "해설": "해설",
 };
 
 export async function getStaticPaths() {
@@ -24,8 +29,8 @@ export async function getStaticPaths() {
     );
     const related =
       sameCat.length > 0
-        ? sameCat.slice(0, 4)
-        : sorted.filter((p) => p.id !== post.id).slice(0, 4);
+        ? sameCat.slice(0, 3)
+        : sorted.filter((p) => p.id !== post.id).slice(0, 3);
 
     return {
       params: { slug: post.id },
@@ -37,26 +42,51 @@ export async function getStaticPaths() {
 const { post, relatedPosts } = Astro.props;
 const { Content } = await render(post);
 const catLabel = categoryLabels[post.data.category] ?? post.data.category;
-const typeLabel = post.data.type === "case" ? "사례" : post.data.type === "column" ? "칼럼" : null;
+const typeLabel = post.data.type ? (typeLabels[post.data.type] ?? post.data.type) : null;
 const taxInfo = TAX_INFO[post.data.category];
 ---
 <Base title={post.data.title}>
-  <main class="layout">
-    <article class="card">
-      <div class="meta">
-        <span class={`badge cat-${post.data.category}`}>{catLabel}</span>
-        {typeLabel && <span class="badge-type">{typeLabel}</span>}
-        <time>{post.data.date}</time>
+  <!-- A. 글 헤더 — 다크 띠 -->
+  <header class="post-header">
+    <div class="post-header-line" aria-hidden="true"></div>
+    <div class="post-header-inner">
+      <div class="post-meta-top">
+        <span class="meta-cat">{catLabel}</span>
+        {typeLabel && <><span class="meta-sep">·</span><span class="meta-type">{typeLabel}</span></>}
+        <span class="meta-sep">·</span>
+        <time class="meta-date">{post.data.date}</time>
       </div>
-      <h1 class="title">{post.data.title}</h1>
-      {post.data.tags && post.data.tags.length > 0 && (
-        <div class="tags">
-          {post.data.tags.map((tag: string) => (
-            <a href={`/tags/${tag}/`} class="tag"># {tag}</a>
-          ))}
+      <h1 class="post-title">{post.data.title}</h1>
+      <div class="post-meta-bottom">
+        {post.data.basis && (
+          <span class="meta-basis">기준 <span class="meta-mono">{post.data.basis}</span></span>
+        )}
+        {post.data.basis && post.data.status && <span class="meta-sep">·</span>}
+        {post.data.status && <span class="meta-status">{post.data.status}</span>}
+        {(post.data.basis || post.data.status) && post.data.tags && post.data.tags.length > 0 && (
+          <span class="meta-sep">|</span>
+        )}
+        {post.data.tags && post.data.tags.length > 0 && (
+          <span class="meta-tags">
+            {post.data.tags.map((tag: string, i: number) => (
+              <><a href={`/tags/${tag}/`} class="meta-tag"># {tag}</a>{i < post.data.tags!.length - 1 && " "}</>
+            ))}
+          </span>
+        )}
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <article class="article">
+      <!-- B. "한 줄로" 요약 블록 -->
+      {post.data.summary && (
+        <div class="summary-block">
+          <p class="summary-label">한 줄로</p>
+          <p class="summary-text">{post.data.summary}</p>
         </div>
       )}
-      <hr class="divider" />
+
       <div class="body">
         <Content />
       </div>
@@ -73,50 +103,36 @@ const taxInfo = TAX_INFO[post.data.category];
         </div>
       </form>
 
-      <div class="sidebar-taxinfo">
-        <p class="sidebar-title">{catLabel} 한눈에</p>
-        {taxInfo ? (
-          <>
-            <table class="si-table">
-              <thead><tr><th>과세표준</th><th>세율</th><th>누진공제</th></tr></thead>
-              <tbody>
-                {taxInfo.rates.map((r) => (
-                  <tr><td>{r.bracket}</td><td>{r.rate}</td><td>{r.deduction}</td></tr>
-                ))}
-              </tbody>
-            </table>
+      {taxInfo && (
+        <div class="sidebar-taxinfo">
+          <p class="sidebar-title">{catLabel} 한눈에</p>
+          <table class="si-table">
+            <thead><tr><th>과세표준</th><th>세율</th><th>누진공제</th></tr></thead>
+            <tbody>
+              {taxInfo.rates.map((r) => (
+                <tr><td>{r.bracket}</td><td>{r.rate}</td><td>{r.deduction}</td></tr>
+              ))}
+            </tbody>
+          </table>
 
-            <p class="si-sub">증여재산공제 (10년간)</p>
-            <table class="si-table">
-              <thead><tr><th>증여자</th><th>공제한도</th></tr></thead>
-              <tbody>
-                {taxInfo.exemptions.map((e) => (
-                  <tr><td>{e.relation}</td><td>{e.limit}</td></tr>
-                ))}
-              </tbody>
-            </table>
-            {taxInfo.exemptionNote && <p class="si-note">{taxInfo.exemptionNote}</p>}
+          <p class="si-sub">증여재산공제 (10년간)</p>
+          <table class="si-table">
+            <thead><tr><th>증여자</th><th>공제한도</th></tr></thead>
+            <tbody>
+              {taxInfo.exemptions.map((e) => (
+                <tr><td>{e.relation}</td><td>{e.limit}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          {taxInfo.exemptionNote && <p class="si-note">{taxInfo.exemptionNote}</p>}
 
-            <div class="si-footer">
-              <p>신고기한: {taxInfo.filingDeadline}</p>
-              <p>신고·납부: {taxInfo.filingPerson}</p>
-            </div>
-          </>
-        ) : (
-          <p class="si-placeholder">정리 중입니다</p>
-        )}
-      </div>
-
-      {relatedPosts.length > 0 && (
-        <div class="sidebar-related">
-          <p class="sidebar-title">{catLabel} 글 더보기</p>
-          <ul>
-            {relatedPosts.map((rp: any) => (
-              <li><a href={`/blog/${rp.id}/`}>{rp.data.title}</a></li>
-            ))}
-          </ul>
+          <div class="si-footer">
+            <p>신고기한: {taxInfo.filingDeadline}</p>
+            <p>신고·납부: {taxInfo.filingPerson}</p>
+          </div>
         </div>
       )}
+
       <div class="sidebar-cta">
         <p class="cta-label">상담이 필요하세요?</p>
         <a href="https://pf.kakao.com/_dcihX/chat" target="_blank" rel="noopener" class="cta-btn">
@@ -126,15 +142,121 @@ const taxInfo = TAX_INFO[post.data.category];
     </aside>
   </main>
 
-  <div class="bottom-area">
-    <CTA />
-    <div class="back-wrap">
-      <a href="/" class="back">&larr; 목록으로</a>
+  <!-- G. 글 하단 — 다크 CTA 띠 -->
+  <footer class="post-footer">
+    <div class="post-footer-inner">
+      <div class="pf-cta">
+        <div class="pf-cta-text">
+          <p class="pf-cta-title">여기까지는 일반론입니다.</p>
+          <p class="pf-cta-desc">내 경우는 다를 수 있습니다 — 상황을 알려주시면 정리해 드릴게요.</p>
+        </div>
+        <a href="https://pf.kakao.com/_dcihX/chat" target="_blank" rel="noopener" class="pf-cta-btn">
+          카카오톡 상담하기
+        </a>
+      </div>
+      {relatedPosts.length > 0 && (
+        <div class="pf-related">
+          <hr class="pf-divider" />
+          <p class="pf-related-title">함께 보면 좋은 글</p>
+          <ul class="pf-related-list">
+            {relatedPosts.map((rp: any) => (
+              <li><a href={`/blog/${rp.id}/`}>→ {rp.data.title}</a></li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
+  </footer>
+
+  <div class="back-area">
+    <a href="/" class="back">&larr; 목록으로</a>
   </div>
 </Base>
 
 <style>
+  /* ── A. Post Header — Dark Strip ── */
+  .post-header {
+    background-color: #2C2117;
+    background-image:
+      linear-gradient(rgba(245,240,232,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,240,232,0.03) 1px, transparent 1px);
+    background-size: 44px 44px;
+    position: relative;
+    padding: 2.5rem 1.5rem 2rem;
+  }
+  .post-header-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: rgba(212,98,43,0.4);
+  }
+  .post-header-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  .post-meta-top {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .meta-cat {
+    color: #D4622B;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+  }
+  .meta-type {
+    color: #b5a894;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .meta-sep {
+    color: #5a4e40;
+    font-size: 0.75rem;
+  }
+  .meta-date {
+    color: #b5a894;
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  .post-title {
+    font-family: 'SUIT Variable', 'Pretendard', sans-serif;
+    font-size: 2.125rem;
+    font-weight: 800;
+    color: #F5F0E8;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+  .post-meta-bottom {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .meta-basis,
+  .meta-status {
+    color: #b5a894;
+    font-size: 0.75rem;
+  }
+  .meta-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  .meta-tags {
+    font-size: 0.75rem;
+  }
+  .meta-tag {
+    color: #8a7e6f;
+    transition: color 0.15s;
+  }
+  .meta-tag:hover {
+    color: #D4622B;
+  }
+
   /* ── Layout ── */
   .layout {
     max-width: 1080px;
@@ -146,164 +268,125 @@ const taxInfo = TAX_INFO[post.data.category];
     overflow-x: hidden;
   }
 
-  /* ── Article Card ── */
-  .card {
+  /* ── Article ── */
+  .article {
     flex: 1;
     min-width: 0;
     max-width: 100%;
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #eae4d8;
-    padding: 2.5rem;
-    overflow-x: hidden;
   }
 
-  /* ── Meta ── */
-  .meta {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 1rem;
+  /* ── B. Summary Block ── */
+  .summary-block {
+    border-top: 2px solid #D4622B;
+    padding-top: 0.75rem;
+    margin-bottom: 2.5rem;
   }
-  .badge {
-    font-size: 0.75rem;
+  .summary-label {
+    font-size: 0.6875rem;
     font-weight: 700;
-    padding: 0.2rem 0.6rem;
-    border-radius: 4px;
+    color: #D4622B;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
   }
-  .cat-chwideuk { background: #4A6FA5; color: #fff; }
-  .cat-yangdo { background: var(--dark-brown); color: var(--cream); }
-  .cat-jeungyeo { background: var(--terracotta); color: #fff; }
-  .cat-sangsok { background: #5B7A5E; color: #fff; }
-  .cat-etc { background: #888; color: #fff; }
-  .badge-type {
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 0.15rem 0.45rem;
-    border-radius: 3px;
-    border: 1.2px solid var(--dark-brown);
-    color: var(--dark-brown);
-  }
-  time {
-    font-size: 0.8rem;
-    color: #999;
+  .summary-text {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: #3a3229;
   }
 
-  /* ── Tags ── */
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin-bottom: 1rem;
-  }
-  .tag {
-    display: inline-block;
-    background: #f4f0e8;
-    color: var(--dark-brown);
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 0.25rem 0.65rem;
-    border-radius: 20px;
-    transition: background 0.15s;
-  }
-  .tag:hover {
-    background: #e8e0d2;
-  }
-
-  /* ── Title & Divider ── */
-  .title {
-    font-family: 'SUIT Variable', 'Pretendard', sans-serif;
-    font-size: 1.7rem;
-    font-weight: 800;
-    letter-spacing: -0.4px;
-    color: var(--dark-brown);
-    line-height: 1.45;
-    margin-bottom: 1rem;
-  }
-  .divider {
-    border: none;
-    height: 1px;
-    background: #eae4d8;
-    margin-bottom: 2rem;
-  }
-
-  /* ── Body Typography ── */
+  /* ── C. Body Typography ── */
   .body {
-    font-size: 0.95rem;
+    font-size: 0.9375rem;
     line-height: 1.85;
     color: #3a3229;
     counter-reset: h2counter;
   }
   .body :global(h2) {
     font-family: 'SUIT Variable', 'Pretendard', sans-serif;
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.1875rem;
+    font-weight: 800;
     color: var(--dark-brown);
     margin: 3rem 0 0.75rem;
-    padding: 0.75rem 1rem 0.75rem 1rem;
-    background: #f7f3ea;
-    border-left: 4px solid var(--dark-brown);
-    border-radius: 0 8px 8px 0;
+    padding: 0 0 0.5rem;
+    border-bottom: 1px solid #EAE4D8;
     display: flex;
-    align-items: flex-start;
+    align-items: baseline;
     gap: 0.5rem;
     counter-increment: h2counter;
+    background: none;
+    border-left: none;
+    border-radius: 0;
   }
   .body :global(h2)::before {
-    content: counter(h2counter);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.5rem;
-    height: 1.5rem;
-    margin-top: 0.1em;
-    background: var(--dark-brown);
-    color: var(--cream);
-    font-family: 'Pretendard', sans-serif;
-    font-size: 0.75rem;
+    content: counter(h2counter, decimal-leading-zero);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.8125rem;
     font-weight: 700;
-    border-radius: 6px;
+    color: #D4622B;
     flex-shrink: 0;
+    background: none;
+    min-width: auto;
+    height: auto;
+    border-radius: 0;
+    display: inline;
+    align-items: initial;
+    justify-content: initial;
+    margin-top: 0;
   }
   .body :global(h3) {
-    font-size: 1.06rem;
+    font-size: 1.0625rem;
     font-weight: 700;
     color: var(--dark-brown);
-    margin: 2.5rem 0 1rem;
-    padding: 0.5rem 0.75rem;
-    background: #f7f3ea;
-    border-left: 4px solid var(--dark-brown);
-    border-radius: 0 6px 6px 0;
+    margin: 2.5rem 0 0.75rem;
+    padding: 0;
+    background: none;
+    border-left: none;
+    border-radius: 0;
   }
   .body :global(p) {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
   }
   .body :global(ul), .body :global(ol) {
-    margin: 0.5rem 0 1rem 1.25rem;
+    margin: 0.5rem 0 1.25rem 1.25rem;
   }
   .body :global(li) {
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.4rem;
   }
   .body :global(strong) {
     color: var(--dark-brown);
     font-weight: 700;
   }
   .body :global(a) {
-    color: var(--terracotta);
+    color: #D4622B;
     text-decoration: underline;
     text-underline-offset: 2px;
   }
   .body :global(a:hover) {
     opacity: 0.8;
   }
+  .body :global(code) {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-weight: 700;
+    color: var(--dark-brown);
+    font-size: 0.9em;
+    background: none;
+    padding: 0;
+  }
+  .body :global(hr) {
+    border: none;
+    height: 1px;
+    background: #EAE4D8;
+    margin: 2.5rem 0;
+  }
 
-  /* ── Table ── */
+  /* ── D. Table ── */
   .body :global(.table-wrap) {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     margin: 1.25rem 0;
     border-radius: 8px;
-    border: 1px solid #e8e2d6;
+    border: 1px solid #EAE4D8;
     max-width: 100%;
   }
   .body :global(table) {
@@ -312,7 +395,7 @@ const taxInfo = TAX_INFO[post.data.category];
     font-size: 0.85rem;
   }
   .body :global(th) {
-    background: #f0eae0;
+    background: #EAE4D8;
     color: var(--dark-brown);
     font-weight: 700;
     padding: 0.65rem 1rem;
@@ -321,16 +404,40 @@ const taxInfo = TAX_INFO[post.data.category];
   }
   .body :global(td) {
     padding: 0.6rem 1rem;
-    border-top: 1px solid #e8e2d6;
+    border-top: 1px solid #EAE4D8;
   }
   .body :global(tr:nth-child(even) td) {
-    background: #faf7f1;
+    background: #faf8f4;
+  }
+  .body :global(.table-footnote) {
+    font-size: 0.71875rem;
+    color: #999;
+    margin-top: 0.35rem;
+    margin-bottom: 1.25rem;
   }
 
-  /* ── Blockquote ── */
+  /* ── E. Warning Callout ── */
+  .body :global(.callout-warn) {
+    border-left: 2px solid #D4622B;
+    padding: 0.75rem 1rem;
+    margin: 1.5rem 0;
+  }
+  .body :global(.callout-warn-label) {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #D4622B;
+    margin-bottom: 0.25rem;
+  }
+  .body :global(.callout-warn-body) {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: #555;
+  }
+
+  /* ── Blockquote (일반) ── */
   .body :global(blockquote) {
     background: #faf7f1;
-    border-left: 3px solid var(--terracotta);
+    border-left: 3px solid #D4622B;
     padding: 1rem 1.25rem;
     margin: 1.5rem 0;
     border-radius: 0 8px 8px 0;
@@ -338,19 +445,33 @@ const taxInfo = TAX_INFO[post.data.category];
     color: #555;
   }
 
-  /* ── Callout ── */
-  .body :global(.callout) {
-    background: #f5f3ef;
-    border: 1px solid #e0dbd2;
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
-    margin: 1.5rem 0;
-    font-size: 0.82rem;
-    line-height: 1.7;
-    color: #777;
+  /* ── F. Legal Citation Pill ── */
+  .body :global(.law-pill) {
+    display: inline;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.75rem;
+    background: #f7f3ea;
+    color: var(--dark-brown);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    text-decoration: none;
+  }
+  .body :global(.law-pill:hover) {
+    background: #EAE4D8;
+    opacity: 1;
   }
 
-  /* ── Sidebar Search ── */
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+  }
   .sidebar-search {
     background: #fff;
     border-radius: 12px;
@@ -375,7 +496,7 @@ const taxInfo = TAX_INFO[post.data.category];
     outline: none;
   }
   .search-input:focus {
-    border-color: var(--terracotta);
+    border-color: #D4622B;
   }
   .search-btn {
     background: var(--dark-brown);
@@ -387,8 +508,6 @@ const taxInfo = TAX_INFO[post.data.category];
     display: flex;
     align-items: center;
   }
-
-  /* ── Sidebar Tax Info ── */
   .sidebar-taxinfo {
     background: #fff;
     border-radius: 12px;
@@ -434,58 +553,11 @@ const taxInfo = TAX_INFO[post.data.category];
     color: #777;
     line-height: 1.6;
   }
-  .si-placeholder {
-    font-size: 0.8rem;
-    color: #999;
-    text-align: center;
-    padding: 1rem 0;
-  }
-
-  /* ── Sidebar ── */
-  .sidebar {
-    width: 240px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    position: sticky;
-    top: 80px;
-    align-self: flex-start;
-  }
-  .sidebar-related {
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #eae4d8;
-    padding: 1.25rem;
-  }
   .sidebar-title {
     font-size: 0.85rem;
     font-weight: 700;
-    color: var(--terracotta);
+    color: #D4622B;
     margin-bottom: 0.75rem;
-  }
-  .sidebar-related ul {
-    list-style: none;
-  }
-  .sidebar-related li {
-    border-top: 1px solid #f0ebe3;
-    padding: 0.6rem 0;
-  }
-  .sidebar-related li:first-child {
-    border-top: none;
-    padding-top: 0;
-  }
-  .sidebar-related li:last-child {
-    padding-bottom: 0;
-  }
-  .sidebar-related a {
-    font-size: 0.85rem;
-    line-height: 1.5;
-    display: block;
-    transition: color 0.15s;
-  }
-  .sidebar-related a:hover {
-    color: var(--terracotta);
   }
   .sidebar-cta {
     background: var(--dark-brown);
@@ -502,7 +574,7 @@ const taxInfo = TAX_INFO[post.data.category];
   }
   .cta-btn {
     display: inline-block;
-    background: var(--terracotta);
+    background: #D4622B;
     color: #fff;
     font-weight: 700;
     font-size: 0.85rem;
@@ -512,20 +584,91 @@ const taxInfo = TAX_INFO[post.data.category];
   }
   .cta-btn:hover { opacity: 0.85; }
 
-  /* ── Bottom CTA + Back ── */
-  .bottom-area {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 0 1.5rem 4rem;
+  /* ── G. Post Footer — Dark CTA Strip ── */
+  .post-footer {
+    background-color: #2C2117;
+    background-image:
+      linear-gradient(rgba(245,240,232,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,240,232,0.03) 1px, transparent 1px);
+    background-size: 44px 44px;
+    padding: 2.5rem 1.5rem;
+    margin-top: 3rem;
   }
-  .back-wrap {
-    margin-top: 2rem;
+  .post-footer-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  .pf-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .pf-cta-title {
+    font-family: 'SUIT Variable', 'Pretendard', sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 800;
+    color: #F5F0E8;
+    margin-bottom: 0.25rem;
+  }
+  .pf-cta-desc {
+    font-size: 0.8125rem;
+    color: #b5a894;
+    line-height: 1.6;
+  }
+  .pf-cta-btn {
+    display: inline-block;
+    background: #D4622B;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .pf-cta-btn:hover { opacity: 0.85; }
+  .pf-divider {
+    border: none;
+    height: 1px;
+    background: rgba(245,240,232,0.1);
+    margin: 2rem 0 1.25rem;
+  }
+  .pf-related-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #8a7e6f;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.04em;
+  }
+  .pf-related-list {
+    list-style: none;
+    padding: 0;
+  }
+  .pf-related-list li {
+    margin-bottom: 0.4rem;
+  }
+  .pf-related-list a {
+    font-size: 0.85rem;
+    color: #b5a894;
+    transition: color 0.15s;
+  }
+  .pf-related-list a:hover {
+    color: #F5F0E8;
+  }
+
+  /* ── Back ── */
+  .back-area {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
     text-align: center;
   }
   .back {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--terracotta);
+    color: #D4622B;
   }
 
   /* ── Mobile ── */
@@ -539,29 +682,31 @@ const taxInfo = TAX_INFO[post.data.category];
       flex-direction: row;
       flex-wrap: wrap;
     }
-    .sidebar-related,
+    .sidebar-taxinfo,
     .sidebar-cta {
       flex: 1;
       min-width: 240px;
     }
-    .card {
-      padding: 1.75rem;
-    }
-    .title {
-      font-size: 1.45rem;
+    .pf-cta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.25rem;
     }
   }
 
   @media (max-width: 640px) {
+    .post-title {
+      font-size: 1.625rem;
+    }
+    .post-header {
+      padding: 2rem 1.25rem 1.5rem;
+    }
     .sidebar {
       flex-direction: column;
     }
-    .sidebar-related,
+    .sidebar-taxinfo,
     .sidebar-cta {
       min-width: auto;
-    }
-    .card {
-      padding: 1.25rem;
     }
   }
 </style>
@@ -573,5 +718,22 @@ const taxInfo = TAX_INFO[post.data.category];
     wrap.className = 'table-wrap';
     table.parentNode!.insertBefore(wrap, table);
     wrap.appendChild(table);
+  });
+
+  // E. Transform > [!주의] blockquotes into callout-warn
+  document.querySelectorAll('.body blockquote').forEach((bq) => {
+    const text = bq.textContent?.trim() ?? '';
+    if (text.startsWith('[!주의]')) {
+      const content = text.replace(/^\[!주의\]\s*/, '');
+      bq.outerHTML = `<div class="callout-warn"><p class="callout-warn-label">주의</p><p class="callout-warn-body">${content}</p></div>`;
+    }
+  });
+
+  // D. Table footnote — if next sibling p starts with "기준:"
+  document.querySelectorAll('.body .table-wrap').forEach((wrap) => {
+    const next = wrap.nextElementSibling;
+    if (next && next.tagName === 'P' && next.textContent?.trim().startsWith('기준:')) {
+      next.classList.add('table-footnote');
+    }
   });
 </script>

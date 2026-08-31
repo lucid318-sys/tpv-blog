@@ -7,9 +7,11 @@ const blog = defineCollection({
     title: z.string(),
     date: z.string(),
     category: z.enum(["chwideuk", "yangdo", "jeungyeo", "sangsok", "etc"]),
-    type: z.enum(["column", "case"]).optional(),
+    type: z.enum(["column", "case", "해설"]).optional(),
     tags: z.array(z.string()).optional(),
-    summary: z.string(),
+    summary: z.string().optional(),
+    basis: z.string().optional(),
+    status: z.string().optional(),
   }),
 });
 
