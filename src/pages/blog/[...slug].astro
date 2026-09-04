@@ -44,6 +44,26 @@ const { Content } = await render(post);
 const catLabel = categoryLabels[post.data.category] ?? post.data.category;
 const typeLabel = post.data.type ? (typeLabels[post.data.type] ?? post.data.type) : null;
 const taxInfo = TAX_INFO[post.data.category];
+
+const SIDEBAR_LINK_DEFS = [
+  {
+    label: "조정대상지역 검색",
+    href: "/resources/regulated-areas/",
+    match: (cat: string, tags: string[]) =>
+      cat === "yangdo" || cat === "chwideuk" ||
+      tags.some((t) => ["중과", "중과세율", "다주택자", "1세대1주택", "비과세", "조정대상지역", "임대주택"].includes(t)),
+  },
+  {
+    label: "서식·자료 모음",
+    href: "/resources/",
+    match: (cat: string, tags: string[]) =>
+      cat === "jeungyeo" || cat === "sangsok" ||
+      tags.some((t) => ["증여세신고", "자녀증여", "차용증", "상속세신고"].includes(t)),
+  },
+];
+
+const postTags = post.data.tags ?? [];
+const sidebarLinks = SIDEBAR_LINK_DEFS.filter((l) => l.match(post.data.category, postTags));
 ---
 <Base title={post.data.title}>
   <!-- A. 글 헤더 — 다크 띠 -->
@@ -133,12 +153,12 @@ const taxInfo = TAX_INFO[post.data.category];
         </div>
       )}
 
-      {relatedPosts.length > 0 && (
-        <div class="sidebar-related">
-          <p class="sidebar-title">{catLabel} 글 더보기</p>
+      {sidebarLinks.length > 0 && (
+        <div class="sidebar-links">
+          <p class="sidebar-title">관련 링크</p>
           <ul>
-            {relatedPosts.map((rp: any) => (
-              <li><a href={`/blog/${rp.id}/`}>{rp.data.title}</a></li>
+            {sidebarLinks.map((link) => (
+              <li><a href={link.href}>{link.label} &rarr;</a></li>
             ))}
           </ul>
         </div>
@@ -152,6 +172,25 @@ const taxInfo = TAX_INFO[post.data.category];
       </div>
     </aside>
   </main>
+
+  <!-- Related Posts -->
+  {relatedPosts.length > 0 && (
+    <section class="related-posts">
+      <div class="related-posts-inner">
+        <p class="related-posts-title">같이 읽으면 좋은 글</p>
+        <ul class="related-posts-list">
+          {relatedPosts.map((rp: any) => (
+            <li>
+              <a href={`/blog/${rp.id}/`}>
+                <span class="rp-cat">{categoryLabels[rp.data.category]}</span>
+                <span class="rp-title">{rp.data.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
 
   <!-- G. 글 하단 — 다크 CTA 띠 -->
   <footer class="post-footer">
@@ -559,34 +598,36 @@ const taxInfo = TAX_INFO[post.data.category];
     color: #D4622B;
     margin-bottom: 0.75rem;
   }
-  .sidebar-related {
+  .sidebar-links {
     background: #fff;
     border-radius: 12px;
     border: 1px solid #eae4d8;
     padding: 1.25rem;
   }
-  .sidebar-related ul {
+  .sidebar-links ul {
     list-style: none;
   }
-  .sidebar-related li {
+  .sidebar-links li {
     border-top: 1px solid #f0ebe3;
     padding: 0.6rem 0;
   }
-  .sidebar-related li:first-child {
+  .sidebar-links li:first-child {
     border-top: none;
     padding-top: 0;
   }
-  .sidebar-related li:last-child {
+  .sidebar-links li:last-child {
     padding-bottom: 0;
   }
-  .sidebar-related a {
+  .sidebar-links a {
     font-size: 0.85rem;
     line-height: 1.5;
     display: block;
-    transition: color 0.15s;
-  }
-  .sidebar-related a:hover {
     color: #D4622B;
+    font-weight: 600;
+    transition: opacity 0.15s;
+  }
+  .sidebar-links a:hover {
+    opacity: 0.75;
   }
   .sidebar-cta {
     background: var(--dark-brown);
@@ -612,6 +653,57 @@ const taxInfo = TAX_INFO[post.data.category];
     transition: opacity 0.2s;
   }
   .cta-btn:hover { opacity: 0.85; }
+
+  /* ── Related Posts ── */
+  .related-posts {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .related-posts-inner {
+    border-top: 1px solid #EAE4D8;
+    padding: 2rem 0 0.5rem;
+  }
+  .related-posts-title {
+    font-family: 'SUIT Variable', 'Pretendard', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #D4622B;
+    margin-bottom: 1rem;
+  }
+  .related-posts-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .related-posts-list li {
+    border-top: 1px solid #f0ebe3;
+  }
+  .related-posts-list li:first-child {
+    border-top: none;
+  }
+  .related-posts-list a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.75rem 0;
+    transition: color 0.15s;
+  }
+  .related-posts-list a:hover {
+    color: #D4622B;
+  }
+  .rp-cat {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #b5a894;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+  }
+  .rp-title {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
 
   /* ── G. Post Footer — Dark CTA Strip ── */
   .post-footer {
@@ -684,7 +776,7 @@ const taxInfo = TAX_INFO[post.data.category];
       flex-wrap: wrap;
     }
     .sidebar-taxinfo,
-    .sidebar-related,
+    .sidebar-links,
     .sidebar-cta {
       flex: 1;
       min-width: 240px;
@@ -707,7 +799,7 @@ const taxInfo = TAX_INFO[post.data.category];
       flex-direction: column;
     }
     .sidebar-taxinfo,
-    .sidebar-related,
+    .sidebar-links,
     .sidebar-cta {
       min-width: auto;
     }
