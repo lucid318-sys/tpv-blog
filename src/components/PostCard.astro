@@ -3,7 +3,7 @@ interface Props {
   slug: string;
   title: string;
   date: string;
-  category: "chwideuk" | "yangdo" | "jeungyeo" | "sangsok" | "etc";
+  category: "chwideuk" | "yangdo" | "jeungyeo" | "sangsok" | "etc" | "guide";
   type?: "column" | "case";
   summary: string;
 }
@@ -14,6 +14,7 @@ const categoryLabels: Record<string, string> = {
   sangsok: "상속세",
   jeungyeo: "증여세",
   etc: "기타",
+  guide: "준비하세요",
 };
 const catLabel = categoryLabels[category] ?? category;
 ---
@@ -68,6 +69,10 @@ const catLabel = categoryLabels[category] ?? category;
   }
   .badge.etc {
     background: #888;
+    color: #fff;
+  }
+  .badge.guide {
+    background: #7B6B8A;
     color: #fff;
   }
   .badge-type {

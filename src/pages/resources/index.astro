@@ -2,9 +2,9 @@
 import Base from "../../layouts/Base.astro";
 import { REFERENCE_DATE } from "../../data/regulatedAreas";
 ---
-<Base title="서식·자료">
+<Base title="자료실">
   <main class="main">
-    <h1 class="page-title">서식 · 자료</h1>
+    <h1 class="page-title">자료실</h1>
 
     <section id="policy" class="section">
       <h2 class="section-title">정책 · 대책</h2>
@@ -20,6 +20,17 @@ import { REFERENCE_DATE } from "../../data/regulatedAreas";
     <section id="forms" class="section">
       <h2 class="section-title">서식</h2>
       <p class="placeholder">준비 중입니다.</p>
+    </section>
+
+    <section id="guide" class="section">
+      <h2 class="section-title">이렇게 준비하세요</h2>
+      <a href="/category/guide/" class="card">
+        <div>
+          <h3 class="card-title">절차 가이드 모음</h3>
+          <p class="card-desc">홈택스 화면 안내, 상담 준비물, 서류 발급 방법 등</p>
+        </div>
+        <span class="card-badge">바로가기</span>
+      </a>
     </section>
   </main>
 </Base>

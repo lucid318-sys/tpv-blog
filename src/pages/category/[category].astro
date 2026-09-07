@@ -11,6 +11,7 @@ export async function getStaticPaths() {
     jeungyeo: "증여세",
     sangsok: "상속세",
     etc: "기타",
+    guide: "이렇게 준비하세요",
   };
   const posts = await getCollection("blog");
   return Object.keys(categories).map((cat) => ({
