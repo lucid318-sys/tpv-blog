@@ -220,6 +220,10 @@ const sidebarLinks = SIDEBAR_LINK_DEFS.filter((l) => l.match(post.data.category,
   <div class="back-area">
     <a href="/" class="back">&larr; 목록으로</a>
   </div>
+
+  <div class="lightbox" id="lightbox">
+    <img src="" alt="" />
+  </div>
 </Base>
 
 <style>
@@ -408,6 +412,34 @@ const sidebarLinks = SIDEBAR_LINK_DEFS.filter((l) => l.match(post.data.category,
     border-radius: 8px;
     border: 1px solid #EAE4D8;
     margin: 0.5rem 0 1.25rem;
+    cursor: zoom-in;
+    transition: opacity 0.15s;
+  }
+  .body :global(img:hover) {
+    opacity: 0.9;
+  }
+
+  /* Lightbox overlay */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(44,33,23,0.85);
+    cursor: zoom-out;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .lightbox.open {
+    display: flex;
+  }
+  .lightbox img {
+    max-width: 95vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
   }
   .body :global(strong) {
     color: var(--dark-brown);
@@ -847,5 +879,25 @@ const sidebarLinks = SIDEBAR_LINK_DEFS.filter((l) => l.match(post.data.category,
     if (next && next.tagName === 'P' && next.textContent?.trim().startsWith('기준:')) {
       next.classList.add('table-footnote');
     }
+  });
+
+  // Image lightbox
+  const lightbox = document.getElementById('lightbox')!;
+  const lbImg = lightbox.querySelector('img')!;
+
+  document.querySelectorAll('.body img').forEach((img) => {
+    img.addEventListener('click', () => {
+      lbImg.src = (img as HTMLImageElement).src;
+      lbImg.alt = (img as HTMLImageElement).alt;
+      lightbox.classList.add('open');
+    });
+  });
+
+  lightbox.addEventListener('click', () => {
+    lightbox.classList.remove('open');
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') lightbox.classList.remove('open');
   });
 </script>
