@@ -110,6 +110,17 @@ for (const n of officialNotices) {
         <span class="date-badge">{REFERENCE_DATE} 기준</span>
       </div>
 
+      {/* ⓪ 규제지역 현황 지도 */}
+      <figure class="map-hero">
+        <img
+          src="/images/regulated-area-map.png"
+          alt="2026년 7월 1일 기준 규제지역 현황 지도. 서울 25개구 전 지역과 경기 15곳(수원 장안·팔달·영통, 성남 수정·중원·분당, 안양 동안, 과천, 용인 수지·기흥, 광명, 하남, 의왕, 구리, 화성 동탄)이 조정대상지역·투기과열지구로 중복 지정되어 있다."
+          width="1080"
+          height="1350"
+          loading="eager"
+        />
+      </figure>
+
       {/* ① 현재 지정현황 표 */}
       <section class="section">
         <h2 class="section-title">조정대상지역</h2>
@@ -298,6 +309,17 @@ for (const n of officialNotices) {
     gap: 1rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
+  }
+  .map-hero {
+    margin: 0 0 2rem;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(44,33,23,0.08);
+  }
+  .map-hero img {
+    width: 100%;
+    height: auto;
+    display: block;
   }
   .page-title {
     font-family: 'SUIT Variable', 'Pretendard', sans-serif;
