@@ -316,6 +316,13 @@ for (const n of officialNotices) {
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 12px rgba(44,33,23,0.08);
+    cursor: zoom-in;
+    transition: max-width 0.3s ease, box-shadow 0.3s ease;
+  }
+  .map-hero.expanded {
+    max-width: 100%;
+    cursor: zoom-out;
+    box-shadow: 0 4px 24px rgba(44,33,23,0.15);
   }
   .map-hero img {
     width: 100%;
@@ -664,6 +671,11 @@ for (const n of officialNotices) {
 
 <script define:vars={{ clientPeriods, clientNoticeMap, REGULATION_TYPE_LABEL }}>
 document.addEventListener('DOMContentLoaded', () => {
+  // ── 지도 확대/축소 ──
+  document.querySelector('.map-hero')?.addEventListener('click', function() {
+    this.classList.toggle('expanded');
+  });
+
   // ── 토글 헬퍼 ──
   function setupToggle(btnId, itemSelector, hiddenClass, limit, sectionId) {
     const btn = document.getElementById(btnId);
