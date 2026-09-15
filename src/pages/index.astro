@@ -68,12 +68,12 @@ const areaDataJson = JSON.stringify([...areaMap.values()]);
 </style>
 
 <script define:vars={{ areaDataJson }}>
-  const input = document.getElementById('reg-input') as HTMLInputElement | null;
+  const input = document.getElementById('reg-input');
   const results = document.getElementById('reg-results');
   const submit = document.getElementById('reg-submit');
-  const regions = areaDataJson as { sido: string; region: string; active: boolean }[];
-  const openSearch = (query: string) => { if (query.trim()) window.location.href = `/resources/regulated-areas/?q=${encodeURIComponent(query.trim())}`; };
-  const renderMatches = (query: string) => {
+  const regions = areaDataJson;
+  const openSearch = (query) => { if (query.trim()) window.location.href = `/resources/regulated-areas/?q=${encodeURIComponent(query.trim())}`; };
+  const renderMatches = (query) => {
     if (!results) return; results.replaceChildren(); if (!query.trim()) return;
     regions.filter((region) => `${region.sido} ${region.region}`.includes(query.trim())).slice(0, 4).forEach((region) => {
       const link = document.createElement('a'); link.className = 'reg-result'; link.href = `/resources/regulated-areas/?q=${encodeURIComponent(region.region)}`;
