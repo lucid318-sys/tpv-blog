@@ -949,6 +949,9 @@ const sidebarLinks = SIDEBAR_LINK_DEFS.filter((l) => l.match(post.data.category,
     font-weight: 500;
     line-height: 1.33;
     letter-spacing: -0.075em;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    text-wrap: balance;
   }
   @media (max-width: 640px) {
     .post-title { font-size: 2rem; line-height: 1.4; }
