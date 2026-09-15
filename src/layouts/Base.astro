@@ -50,12 +50,33 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 </html>
 
 <style is:global>
+  @font-face {
+    font-family: 'Bookk Myungjo';
+    src: url('/fonts/bookk-myungjo-light.ttf') format('truetype');
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'Bookk Myungjo';
+    src: url('/fonts/bookk-myungjo-bold.ttf') format('truetype');
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
     --dark-brown: #2C2117;
-    --cream: #F5F0E8;
-    --terracotta: #D4622B;
+    --cream: #F7F3EC;
+    --paper: #FFFDF9;
+    --sand: #E9E1D4;
+    --terracotta: #BD6635;
+    --line-dark: #3B2A1E;
+    --line-light: #D7CABA;
+    --font-bookk: 'Bookk Myungjo', 'Noto Serif KR', serif;
   }
 
   html, body {
@@ -63,7 +84,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   }
 
   body {
-    font-family: 'Pretendard', sans-serif;
+    font-family: 'SUIT Variable', 'Pretendard', sans-serif;
     background: var(--cream);
     color: var(--dark-brown);
     line-height: 1.7;
