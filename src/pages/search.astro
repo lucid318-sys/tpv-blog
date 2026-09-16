@@ -59,15 +59,15 @@ import Base from "../layouts/Base.astro";
 <script>
   const CAT_LABELS: Record<string, string> = {
     chwideuk: "취득세", yangdo: "양도세", jeungyeo: "증여세",
-    sangsok: "상속세", etc: "기타",
+    sangsok: "상속세", jongbu: "종합부동산세", etc: "기타",
   };
   const CAT_COLORS: Record<string, string> = {
     chwideuk: "#4A6FA5", yangdo: "#2C2117", jeungyeo: "#D4622B",
-    sangsok: "#5B7A5E", etc: "#888",
+    sangsok: "#5B7A5E", jongbu: "#2C2117", etc: "#888",
   };
   const CAT_TEXT: Record<string, string> = {
     chwideuk: "#fff", yangdo: "#F5F0E8", jeungyeo: "#fff",
-    sangsok: "#fff", etc: "#fff",
+    sangsok: "#fff", jongbu: "#F5F0E8", etc: "#fff",
   };
 
   interface SearchItem {

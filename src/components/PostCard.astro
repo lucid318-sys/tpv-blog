@@ -3,7 +3,7 @@ interface Props {
   slug: string;
   title: string;
   date: string;
-  category: "chwideuk" | "yangdo" | "jeungyeo" | "sangsok" | "etc" | "guide";
+  category: "chwideuk" | "yangdo" | "jongbu" | "jeungyeo" | "sangsok" | "etc" | "guide";
   type?: "column" | "case";
   summary: string;
 }
@@ -11,6 +11,7 @@ const { slug, title, date, category, type, summary } = Astro.props;
 const categoryLabels: Record<string, string> = {
   chwideuk: "취득세",
   yangdo: "양도세",
+  jongbu: "종합부동산세",
   sangsok: "상속세",
   jeungyeo: "증여세",
   etc: "기타",
@@ -55,7 +56,7 @@ const catLabel = categoryLabels[category] ?? category;
     background: #4A6FA5;
     color: #fff;
   }
-  .badge.yangdo {
+  .badge.yangdo, .badge.jongbu {
     background: var(--dark-brown);
     color: var(--cream);
   }

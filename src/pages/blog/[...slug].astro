@@ -6,6 +6,7 @@ import { TAX_INFO } from "../../data/taxinfo";
 const categoryLabels: Record<string, string> = {
   chwideuk: "취득세",
   yangdo: "양도세",
+  jongbu: "종합부동산세",
   jeungyeo: "증여세",
   sangsok: "상속세",
   etc: "기타",
@@ -66,7 +67,7 @@ const SIDEBAR_LINK_DEFS = [
 const postTags = post.data.tags ?? [];
 const sidebarLinks = SIDEBAR_LINK_DEFS.filter((l) => l.match(post.data.category, postTags));
 ---
-<Base title={post.data.title}>
+<Base title={post.data.title} description={post.data.description}>
   <!-- A. 글 헤더 — 다크 띠 -->
   <header class="post-header">
     <div class="post-header-line" aria-hidden="true"></div>

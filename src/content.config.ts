@@ -6,7 +6,8 @@ const blog = defineCollection({
   schema: z.object({
     title: z.string(),
     date: z.string(),
-    category: z.enum(["chwideuk", "yangdo", "jeungyeo", "sangsok", "etc", "guide"]),
+    category: z.enum(["chwideuk", "yangdo", "jongbu", "jeungyeo", "sangsok", "etc", "guide"]),
+    description: z.string().optional(),
     type: z.enum(["column", "case", "해설"]).optional(),
     tags: z.array(z.string()).optional(),
     summary: z.string().optional(),
