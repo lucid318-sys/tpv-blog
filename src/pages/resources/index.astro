@@ -1,13 +1,28 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { REFERENCE_DATE } from "../../data/regulatedAreas";
+
+const pressReleases = [
+  {
+    date: "2026-09-17",
+    title: "토지거래허가구역 내 실거주 유예, ’27년 12월 31일까지 연장·확대",
+    summary: "실거주 유예 신청 기한 연장과 임대차 갱신계약 인정 확대 발표. 자료상 2026년 10월 1일 시행 예정.",
+    file: "/files/press-releases/2026-09-17-land-transaction-residency.pdf",
+  },
+  {
+    date: "2026-05-12",
+    title: "세입자 있는 주택 전체로 토지거래허가구역 실거주 유예 확대",
+    summary: "실거주 유예 대상을 세입자 있는 주택 전체로 확대하는 방안 발표. 적용 요건과 관련 질의응답 수록.",
+    file: "/files/press-releases/2026-05-12-land-transaction-residency.pdf",
+  },
+];
 ---
 <Base title="자료실">
   <main class="main">
     <h1 class="page-title">자료실</h1>
 
     <section id="policy" class="section">
-      <h2 class="section-title">정책 · 대책</h2>
+      <h2 class="section-title">정책·보도자료</h2>
       <a href="/resources/regulated-areas/" class="card">
         <div>
           <h3 class="card-title">규제지역 지정현황</h3>
@@ -15,6 +30,19 @@ import { REFERENCE_DATE } from "../../data/regulatedAreas";
         </div>
         <span class="card-badge">{REFERENCE_DATE} 기준</span>
       </a>
+      <div class="press-list">
+        {pressReleases.map((release) => (
+          <article class="press-card">
+            <p class="press-meta">보도자료 · 국토교통부 · <time datetime={release.date}>{release.date.replaceAll("-", ".")}</time></p>
+            <h3 class="card-title">{release.title}</h3>
+            <p class="card-desc">{release.summary}</p>
+            <div class="press-actions">
+              <a href={release.file} target="_blank" rel="noopener noreferrer" aria-label={`${release.title} PDF 원문 보기 (새 탭)`}>PDF 원문 보기 ↗</a>
+              <a href={release.file} download aria-label={`${release.title} PDF 다운로드`}>다운로드</a>
+            </div>
+          </article>
+        ))}
+      </div>
     </section>
 
     <section id="forms" class="section">
@@ -72,6 +100,42 @@ import { REFERENCE_DATE } from "../../data/regulatedAreas";
   }
   .card:hover {
     box-shadow: 0 4px 20px rgba(44,33,23,0.1);
+  }
+  .press-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .press-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .press-meta {
+    color: #777;
+    font-size: 0.75rem;
+    margin-bottom: 0.65rem;
+  }
+  .press-card .card-title {
+    line-height: 1.5;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  .press-card .card-desc {
+    line-height: 1.7;
+  }
+  .press-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .press-actions a {
+    color: var(--terracotta);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   .card-title {
     font-family: 'SUIT Variable', 'Pretendard', sans-serif;
