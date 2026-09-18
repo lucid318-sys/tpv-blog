@@ -5,9 +5,11 @@ interface Props {
   date: string;
   category: "chwideuk" | "yangdo" | "jongbu" | "jeungyeo" | "sangsok" | "etc" | "guide";
   type?: "column" | "case";
-  summary: string;
+  tags?: string[];
 }
-const { slug, title, date, category, type, summary } = Astro.props;
+const { slug, title, date, category, type, tags = [] } = Astro.props;
+const isStatuteTag = (tag: string) => /(?:법|령|규칙)\s*(?:제\s*)?\d+\s*조/.test(tag);
+const displayTags = [...tags.filter(tag => !isStatuteTag(tag)), ...tags.filter(isStatuteTag)].slice(0, 3);
 const categoryLabels: Record<string, string> = {
   chwideuk: "취득세",
   yangdo: "양도세",
@@ -26,7 +28,11 @@ const catLabel = categoryLabels[category] ?? category;
     <time>{date}</time>
   </div>
   <h2 class="title">{title}</h2>
-  <p class="summary">{summary}</p>
+  {displayTags.length > 0 && (
+    <p class="tags">
+      {displayTags.map(tag => <span>#{tag}</span>)}
+    </p>
+  )}
 </a>
 
 <style>
@@ -96,9 +102,13 @@ const catLabel = categoryLabels[category] ?? category;
     margin-bottom: 0.5rem;
     line-height: 1.5;
   }
-  .summary {
-    font-size: 0.9rem;
-    color: #666;
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+    color: #806B5A;
     line-height: 1.6;
   }
+  .tags span { overflow-wrap: anywhere; }
 </style>
