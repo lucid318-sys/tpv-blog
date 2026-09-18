@@ -110,25 +110,7 @@ for (const n of officialNotices) {
         <span class="date-badge">{REFERENCE_DATE} 기준</span>
       </div>
 
-      {/* ⓪ 규제지역 현황 지도 */}
-      <figure class="map-hero">
-        <img
-          src="/images/regulated-area-map.png"
-          alt="2026년 7월 1일 기준 규제지역 현황 지도. 서울 25개구 전 지역과 경기 15곳(수원 장안·팔달·영통, 성남 수정·중원·분당, 안양 동안, 과천, 용인 수지·기흥, 광명, 하남, 의왕, 구리, 화성 동탄)이 조정대상지역·투기과열지구로 중복 지정되어 있다."
-          width="1080"
-          height="1350"
-          loading="eager"
-        />
-      </figure>
-
-      {/* 모바일 풀스크린 오버레이 */}
-      <div class="map-hero-overlay" id="map-overlay">
-        <img
-          src="/images/regulated-area-map.png"
-          alt="규제지역 현황 지도 확대"
-        />
-      </div>
-
+      <a class="map-mobile-open" href="/images/regulated-area-map.png" data-map-open aria-haspopup="dialog" aria-controls="map-dialog">규제지역 지도 보기 ↗</a>
       {/* ① 현재 지정현황 표 */}
       <section class="section">
         <h2 class="section-title">조정대상지역</h2>
@@ -277,6 +259,14 @@ for (const n of officialNotices) {
     </div>
 
     <aside class="sidebar">
+      <section class="sidebar-map" aria-labelledby="sidebar-map-title">
+        <h2 class="sidebar-title" id="sidebar-map-title">규제지역 지도</h2>
+        <a href="/images/regulated-area-map.png" class="map-preview" data-map-open aria-haspopup="dialog" aria-controls="map-dialog" aria-label="규제지역 지도 크게 보기">
+          <img src="/images/regulated-area-map.png" alt="서울·경기 규제지역 현황 지도 미리보기" width="1080" height="1350" />
+          <span>지도 크게 보기 <span aria-hidden="true">↗</span></span>
+        </a>
+        <p class="map-reference">{REFERENCE_DATE} 기준</p>
+      </section>
       <form class="sidebar-search" action="/search/" method="get">
         <p class="sidebar-title">키워드로 찾기</p>
         <div class="search-input-wrap">
@@ -295,6 +285,16 @@ for (const n of officialNotices) {
       </div>
     </aside>
   </main>
+  <dialog class="map-dialog" id="map-dialog" aria-labelledby="map-dialog-title">
+    <div class="map-dialog-header">
+      <div><h2 id="map-dialog-title">규제지역 현황 지도</h2><p>{REFERENCE_DATE} 기준</p></div>
+      <button type="button" class="map-close" id="map-close" autofocus aria-label="지도 닫기">닫기 <span aria-hidden="true">×</span></button>
+    </div>
+    <div class="map-toolbar"><button type="button" id="map-zoom" aria-pressed="false" aria-controls="map-viewport">확대해서 보기 +</button><a href="/images/regulated-area-map.png" target="_blank" rel="noopener">원본 보기 ↗</a></div>
+    <div class="map-viewport" id="map-viewport" tabindex="0" role="region" aria-label="규제지역 지도, 확대 시 스크롤로 이동">
+      <img src="/images/regulated-area-map.png" alt="2026년 7월 1일 기준 규제지역 현황 지도. 서울 25개구 전 지역과 경기 15곳(수원 장안·팔달·영통, 성남 수정·중원·분당, 안양 동안, 과천, 용인 수지·기흥, 광명, 하남, 의왕, 구리, 화성 동탄)이 조정대상지역·투기과열지구로 중복 지정되어 있다." width="1080" height="1350" />
+    </div>
+  </dialog>
 </Base>
 
 <style>
@@ -317,42 +317,6 @@ for (const n of officialNotices) {
     gap: 1rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
-  }
-  .map-hero {
-    margin: 0 auto 2rem;
-    max-width: 420px;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(44,33,23,0.08);
-    cursor: zoom-in;
-    transition: max-width 0.3s ease, box-shadow 0.3s ease;
-  }
-  .map-hero.expanded {
-    max-width: 100%;
-    cursor: zoom-out;
-    box-shadow: 0 4px 24px rgba(44,33,23,0.15);
-  }
-  .map-hero-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: rgba(0,0,0,0.85);
-    cursor: zoom-out;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .map-hero-overlay.active { display: flex; align-items: center; justify-content: center; }
-  .map-hero-overlay img {
-    max-width: 95vw;
-    max-height: 95vh;
-    object-fit: contain;
-    border-radius: 8px;
-  }
-  .map-hero img {
-    width: 100%;
-    height: auto;
-    display: block;
   }
   .page-title {
     font-family: 'SUIT Variable', 'Pretendard', sans-serif;
@@ -748,8 +712,6 @@ for (const n of officialNotices) {
   .header { display: block; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--line-dark); }
   .page-title { margin: 0 0 .9rem; font-family: 'SUIT Variable', 'Pretendard', sans-serif; font-size: clamp(2.25rem, 4vw, 3.15rem); font-weight: 500; letter-spacing: -.07em; line-height: 1.25; }
   .date-badge { display: block; padding: 0; background: transparent; color: #9A6749; font-size: .8rem; font-weight: 500; }
-  .map-hero { max-width: 100%; margin-bottom: 4.5rem; border-radius: 0; box-shadow: none; }
-  .map-hero img { border: 1px solid var(--line-light); }
   .section { margin-bottom: 5rem; }
   .section-title { margin: 0 0 1.4rem; padding-top: 1rem; border-top: 1px solid var(--line-dark); font-family: var(--font-bookk); font-size: 1.9rem; font-weight: 300; letter-spacing: -.075em; }
   .table-wrap { border-radius: 0; border: 1px solid var(--line-light); }
@@ -769,7 +731,7 @@ for (const n of officialNotices) {
   .cta-label { color: var(--dark-brown); font-family: var(--font-bookk); font-size: 1.25rem; font-weight: 300; }
   .cta-btn { padding: 0; border-radius: 0; background: transparent; color: var(--terracotta); }
   @media (max-width: 1024px) { .layout { padding-top: 3.5rem; } .content { max-width: none; } .sidebar { border-top: 1px solid var(--line-dark); } }
-  @media (max-width: 640px) { .layout { padding-top: 2.8rem; } .page-title { font-size: 2.1rem; } .section-title { font-size: 1.3rem; } .map-hero { margin-bottom: 3.2rem; } }
+  @media (max-width: 640px) { .layout { padding-top: 2.8rem; } .page-title { font-size: 2.1rem; } .section-title { font-size: 1.3rem; } }
 </style>
 
 <style>
@@ -814,24 +776,42 @@ for (const n of officialNotices) {
 
 <script define:vars={{ clientPeriods, clientNoticeMap, REGULATION_TYPE_LABEL }}>
 document.addEventListener('DOMContentLoaded', () => {
-  // ── 지도 확대/축소 ──
-  const mapHero = document.querySelector('.map-hero');
-  const mapOverlay = document.getElementById('map-overlay');
-  const isMobile = () => window.innerWidth <= 640;
-
-  mapHero?.addEventListener('click', function() {
-    if (isMobile()) {
-      mapOverlay.classList.add('active');
+  // Native dialog supplies keyboard focus containment and Escape dismissal.
+  const mapDialog = document.getElementById('map-dialog');
+  const mapViewport = document.getElementById('map-viewport');
+  const mapZoom = document.getElementById('map-zoom');
+  let mapOpener = null;
+  let previousOverflow = '';
+  document.querySelectorAll('[data-map-open]').forEach(opener => {
+    opener.addEventListener('click', event => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || !mapDialog.showModal) return;
+      event.preventDefault();
+      mapOpener = opener;
+      previousOverflow = document.body.style.overflow;
+      mapViewport.classList.remove('is-zoomed');
+      mapZoom.setAttribute('aria-pressed', 'false');
+      mapZoom.textContent = '확대해서 보기 +';
+      mapDialog.showModal();
+      mapViewport.scrollTo(0, 0);
       document.body.style.overflow = 'hidden';
-    } else {
-      this.classList.toggle('expanded');
-    }
+    });
   });
-  mapOverlay?.addEventListener('click', function() {
-    this.classList.remove('active');
-    document.body.style.overflow = '';
+  document.getElementById('map-close').addEventListener('click', () => mapDialog.close());
+  mapDialog.addEventListener('click', event => {
+    if (event.target !== mapDialog) return;
+    const bounds = mapDialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) mapDialog.close();
   });
-
+  mapDialog.addEventListener('close', () => {
+    document.body.style.overflow = previousOverflow;
+    mapOpener?.focus({ preventScroll: true });
+  });
+  mapZoom.addEventListener('click', () => {
+    const enlarged = mapViewport.classList.toggle('is-zoomed');
+    mapZoom.setAttribute('aria-pressed', String(enlarged));
+    mapZoom.textContent = enlarged ? '화면에 맞추기 −' : '확대해서 보기 +';
+    mapViewport.scrollTo(0, 0);
+  });
   // ── 토글 헬퍼 ──
   function setupToggle(btnId, itemSelector, hiddenClass, limit, sectionId) {
     const btn = document.getElementById(btnId);
@@ -1102,3 +1082,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 }); // DOMContentLoaded
 </script>
+
+<style>
+  .sidebar-map { padding: 1.25rem 0; border-bottom: 1px solid var(--line-light); }
+  .map-preview { display: block; border: 1px solid var(--line-light); background: var(--paper); }
+  .map-preview img { display: block; width: 100%; height: auto; }
+  .map-preview > span { display: flex; justify-content: space-between; padding: .65rem .8rem; border-top: 1px solid var(--line-light); font-size: .8rem; color: var(--terracotta); }
+  .map-preview:hover { border-color: var(--dark-brown); }
+  .map-reference { margin-top: .6rem; font-size: .7rem; color: #806B5A; }
+  .map-mobile-open { display: none; }
+  .map-dialog { margin: auto; padding: 0; border: 1px solid var(--line-light); border-radius: 12px; width: min(920px, calc(100vw - 48px)); max-width: none; max-height: none; height: min(1000px, calc(100dvh - 48px)); background: var(--paper); color: var(--dark-brown); overflow: hidden; }
+  .map-dialog[open] { display: flex; flex-direction: column; }
+  .map-dialog::backdrop { background: rgba(25, 19, 14, .75); }
+  .map-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--line-light); flex-shrink: 0; }
+  .map-dialog-header h2 { font-size: 1rem; font-weight: 700; }
+  .map-dialog-header p { font-size: .75rem; color: #806B5A; }
+  .map-close, .map-toolbar button { font: inherit; color: inherit; background: transparent; border: 1px solid var(--line-light); border-radius: 6px; padding: .5rem .75rem; cursor: pointer; min-height: 44px; white-space: nowrap; }
+  .map-close { font-size: .85rem; }
+  .map-toolbar { display: flex; align-items: center; gap: 1rem; padding: .6rem 1.25rem; font-size: .8rem; flex-shrink: 0; }
+  .map-toolbar a { color: var(--terracotta); text-decoration: underline; text-underline-offset: 3px; }
+  .map-viewport { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; background: #eee7dc; }
+  .map-viewport img { display: block; width: 100%; height: 100%; object-fit: contain; margin: auto; }
+  .map-viewport.is-zoomed img { width: 1080px; height: 1350px; max-width: none; }
+  [data-map-open]:focus-visible, .map-dialog :focus-visible { outline: 3px solid var(--terracotta); outline-offset: 3px; }
+  @media (max-width: 1024px) {
+    .sidebar-map { display: none; }
+    .sidebar { width: 100%; }
+    .content { width: 100%; }
+    .map-mobile-open { display: inline-flex; align-items: center; min-height: 44px; margin: -1rem 0 2rem; padding: .5rem 1rem; border: 1px solid var(--line-light); border-radius: 6px; background: var(--paper); font-size: .85rem; color: var(--terracotta); }
+  }
+  @media (max-width: 640px) {
+    .map-dialog { width: 100%; height: 100dvh; border: 0; border-radius: 0; }
+    .map-dialog-header { padding-top: max(1rem, env(safe-area-inset-top)); }
+    .map-viewport { padding-bottom: env(safe-area-inset-bottom); }
+  }
+</style>
