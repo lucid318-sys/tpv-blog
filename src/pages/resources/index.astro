@@ -41,10 +41,21 @@ const taxReforms = [
 ---
 <Base title="자료실">
   <main class="main">
-    <h1 class="page-title">자료실</h1>
+    <header class="page-header">
+      <p class="eyebrow">더프라이빗택스 자료실</p>
+      <h1 class="page-title">필요한 자료를 찾아보세요</h1>
+      <p class="page-intro">지역별 규제 현황부터 정책 원문, 신고 준비 안내까지.</p>
+    </header>
+    <nav class="resource-nav" aria-label="자료 분류">
+      <a href="#areas" class="resource-category"><span class="category-label">규제지역 지정현황</span><span class="category-desc">지역별 현황 · 지정 연혁</span></a>
+      <a href="#press-releases" class="resource-category"><span class="category-label">보도자료</span><span class="category-desc">정책 발표 · PDF 원문</span></a>
+      <a href="#tax-reforms" class="resource-category"><span class="category-label">세제개편안</span><span class="category-desc">개편안 · 문답자료</span></a>
+      <a href="#forms" class="resource-category"><span class="category-label">서식 <small>준비 중</small></span><span class="category-desc">신청 · 신고 서식</span></a>
+      <a href="#guide" class="resource-category"><span class="category-label">이렇게 준비하세요</span><span class="category-desc">홈택스 · 서류 · 상담 준비</span></a>
+    </nav>
 
-    <section id="policy" class="section">
-      <h2 class="section-title">정책·보도자료</h2>
+    <section id="areas" class="section" data-resource-panel aria-labelledby="areas-title">
+      <h2 id="areas-title" class="section-title">규제지역 지정현황</h2>
       <a href="/resources/regulated-areas/" class="card">
         <div>
           <h3 class="card-title">규제지역 지정현황</h3>
@@ -52,12 +63,15 @@ const taxReforms = [
         </div>
         <span class="card-badge">{REFERENCE_DATE} 기준</span>
       </a>
-      <h3 class="group-title" id="press-releases">보도자료</h3>
+      </section>
+    <section id="press-releases" class="section" data-resource-panel aria-labelledby="press-title">
+      <h2 class="section-title" id="press-title">보도자료</h2>
+      <p class="group-note">주요 부동산 정책의 발표 내용과 원문을 확인하세요.</p>
       <div class="press-list">
         {pressReleases.map((release) => (
           <article class="press-card">
             <p class="press-meta">보도자료 · 국토교통부 · <time datetime={release.date}>{release.date.replaceAll("-", ".")}</time></p>
-            <h4 class="card-title">{release.title}</h4>
+            <h3 class="card-title">{release.title}</h3>
             <p class="card-desc">{release.summary}</p>
             <div class="press-actions">
               <a href={release.file} target="_blank" rel="noopener noreferrer" aria-label={`${release.title} PDF 원문 보기 (새 탭)`}>PDF 원문 보기 ↗</a>
@@ -66,13 +80,15 @@ const taxReforms = [
           </article>
         ))}
       </div>
-      <h3 class="group-title" id="tax-reforms">세제개편안</h3>
+      </section>
+    <section id="tax-reforms" class="section" data-resource-panel aria-labelledby="reforms-title">
+      <h2 class="section-title" id="reforms-title">세제개편안</h2>
       <p class="group-note">발표 당시의 개편안 자료로, 이후 심의·입법 과정에서 내용이 달라질 수 있습니다.</p>
       <div class="press-list">
         {taxReforms.map((reform) => (
           <article class="press-card">
             <p class="press-meta">세제개편안 · {reform.agency}</p>
-            <h4 class="card-title">{reform.title}</h4>
+            <h3 class="card-title">{reform.title}</h3>
             <p class="card-desc">{reform.note}</p>
             <ul class="attachment-list">
               {reform.files.map((file) => (
@@ -91,13 +107,13 @@ const taxReforms = [
       </div>
     </section>
 
-    <section id="forms" class="section">
-      <h2 class="section-title">서식</h2>
-      <p class="placeholder">준비 중입니다.</p>
+    <section id="forms" class="section" data-resource-panel aria-labelledby="forms-title">
+      <h2 id="forms-title" class="section-title">서식</h2>
+      <div class="empty-state"><p class="empty-title">서식을 준비하고 있습니다</p><p>신청·신고에 필요한 서식을 이곳에 모아 안내하겠습니다.</p></div>
     </section>
 
-    <section id="guide" class="section">
-      <h2 class="section-title">이렇게 준비하세요</h2>
+    <section id="guide" class="section" data-resource-panel aria-labelledby="guide-title">
+      <h2 id="guide-title" class="section-title">이렇게 준비하세요</h2>
       <a href="/category/guide/" class="card">
         <div>
           <h3 class="card-title">절차 가이드 모음</h3>
@@ -109,9 +125,35 @@ const taxReforms = [
   </main>
 </Base>
 
+<script>
+  const panels = Array.from(document.querySelectorAll<HTMLElement>('[data-resource-panel]'));
+  const categories = Array.from(document.querySelectorAll<HTMLAnchorElement>('.resource-category'));
+  function selectCategory() {
+    const requested = window.location.hash.slice(1);
+    const resolved = requested === 'policy' ? 'press-releases' : requested;
+    const selected = panels.some((panel) => panel.id === resolved) ? resolved : 'areas';
+    panels.forEach((panel) => { panel.hidden = panel.id !== selected; });
+    categories.forEach((link) => {
+      if (link.hash === `#${selected}`) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+    });
+  }
+  categories.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      if (window.location.hash !== link.hash) history.pushState(null, '', link.hash);
+      selectCategory();
+    });
+  });
+  window.addEventListener('hashchange', selectCategory);
+  window.addEventListener('popstate', selectCategory);
+  selectCategory();
+</script>
+
 <style>
   .main {
-    max-width: 720px;
+    max-width: 1080px;
     margin: 0 auto;
     padding: 2rem 1.5rem 4rem;
   }
@@ -246,5 +288,37 @@ const taxReforms = [
       flex-direction: column;
       align-items: flex-start;
     }
+  }
+  .page-header { margin: 1rem 0 2rem; }
+  .eyebrow { font-size: .75rem; letter-spacing: .08em; color: #86664f; margin-bottom: .65rem; }
+  .page-title { font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: .65rem; letter-spacing: -.04em; }
+  .page-intro { color: #71675d; font-size: .95rem; word-break: keep-all; }
+  .resource-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .6rem; margin-bottom: 2.5rem; }
+  .resource-category { border: 1px solid var(--line-light); background: var(--paper); padding: 1.15rem .9rem; border-radius: 10px; transition: background .15s, border-color .15s; }
+  .resource-category:hover { border-color: var(--dark-brown); }
+  .resource-category[aria-current] { background: var(--dark-brown); color: #fffdf9; border-color: var(--dark-brown); }
+  .category-label { display: block; font-size: .9rem; font-weight: 700; word-break: keep-all; }
+  .category-desc { display: block; margin-top: .55rem; font-size: .7rem; color: #71675d; word-break: keep-all; }
+  .resource-category[aria-current] .category-desc { color: #e5d6c5; }
+  .category-label small { display: inline-block; font-size: .6rem; font-weight: 500; margin-left: .15rem; opacity: .8; }
+  .resource-category:focus-visible, .section a:focus-visible { outline: 3px solid var(--terracotta); outline-offset: 4px; }
+  .section { scroll-margin-top: 100px; }
+  .section[hidden] { display: none; }
+  .section-title { font-size: 1.2rem; color: var(--dark-brown); letter-spacing: -.02em; border-bottom: 2px solid var(--line-light); padding-bottom: .8rem; }
+  .press-list { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .press-card, .card { border: 1px solid #e8e2d6; }
+  .empty-state { text-align: center; padding: 3rem 1.5rem; border: 1px dashed var(--line-light); border-radius: 12px; color: #71675d; font-size: .9rem; }
+  .empty-title { color: var(--dark-brown); font-weight: 700; margin-bottom: .5rem; }
+  @media (max-width: 800px) {
+    .resource-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 540px) {
+    .main { padding: 1.5rem 1rem 3rem; }
+    .resource-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-bottom: 2rem; }
+    .resource-category { padding: .9rem; }
+    .resource-category:last-child { grid-column: 1 / -1; }
+    .category-desc { margin-top: .3rem; }
+    .press-list { grid-template-columns: 1fr; }
+    .press-card { padding: 1.25rem; }
   }
 </style>
